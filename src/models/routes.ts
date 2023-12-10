@@ -1,32 +1,32 @@
 import logger from "@/lib/logger";
 import { ILogger } from "@/typescript/logger";
-import { IStop, IStopSearchType } from "@/typescript/models/stops";
+import { IRoute, IRouteSearchType } from "@/typescript/models/routes";
 import { Collection, Db, Document, Filter, MongoClient } from "mongodb";
 
-export class Stops {
+export class Routes {
   private _logger: ILogger;
   private _db: Db;
-  private _collection: Collection<IStop>;
+  private _collection: Collection<IRoute>;
   private _defaultProjection: Document = { _id: 0 };
 
   constructor(_client: MongoClient, _logger: ILogger = logger) {
     this._logger = _logger;
 
     this._db = _client.db();
-    this._collection = this._db.collection<IStop>("stops");
+    this._collection = this._db.collection<IRoute>("routes");
   }
 
   /**
-   * Retrieves all stops based on the given search criteria.
+   * Retrieves all routes based on the provided search criteria.
    *
-   * @param {IStopSearchType} stop The search criteria for the stops.
-   * @return {Promise<IStop[]>} A promise that resolves to an array of stops.
+   * @param {IRouteSearchType} route The search criteria for routes.
+   * @return {Promise<IRoute[]>} A promise that resolves to an array of routes.
    */
-  async getAllStops(stop: IStopSearchType): Promise<IStop[]> {
-    const filters: Filter<IStop> = { $and: [] };
+  async getAllRoutes(route: IRouteSearchType): Promise<IRoute[]> {
+    const filters: Filter<IRoute> = { $and: [] };
 
-    // loop through each property in the stop object
-    Object.entries(stop).forEach(([key, value]) => {
+    // loop through each property in the route object
+    Object.entries(route).forEach(([key, value]) => {
       if (value) {
         filters.$and?.push({
           $or: [
@@ -42,12 +42,12 @@ export class Stops {
       delete filters.$and;
     }
 
-    const stops = await this._collection
+    const routes = await this._collection
       .find(filters)
       .project(this._defaultProjection)
       .sort({ id: 1 })
       .toArray();
 
-    return stops as IStop[];
+    return routes as IRoute[];
   }
 }

@@ -8,6 +8,7 @@ export interface IStop extends ICoordinates {
   township: ILocalizedString;
 }
 
-export type IStopSearchType = Partial<
-  ReplaceValueByType<IStop, ILocalizedString, string>
+export type IStopSearchType = Pick<
+  Partial<ReplaceValueByType<IStop, ILocalizedString, string>>,
+  "name" | "road" | "township"
 >;
