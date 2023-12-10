@@ -1,0 +1,53 @@
+import logger from "@/lib/logger";
+import { ILogger } from "@/typescript/logger";
+import { IStop, IStopSearchType } from "@/typescript/models/stops";
+import { Collection, Db, Document, Filter, MongoClient } from "mongodb";
+
+export class Stops {
+  private _logger: ILogger;
+  private _db: Db;
+  private _collection: Collection<IStop>;
+  private _defaultProjection: Document = { _id: 0 };
+
+  constructor(_client: MongoClient, _logger: ILogger = logger) {
+    this._logger = _logger;
+
+    this._db = _client.db();
+    this._collection = this._db.collection<IStop>("stops");
+  }
+
+  /**
+   * Retrieves all stops based on the given search criteria.
+   *
+   * @param {IStopSearchType} stop - The search criteria for the stops.
+   * @return {Promise<IStop[]>} A promise that resolves to an array of stops.
+   */
+  async getAllStops(stop: IStopSearchType): Promise<IStop[]> {
+    const filters: Filter<IStop> = { $and: [] };
+
+    // loop through each property in the stop object
+    Object.entries(stop).forEach(([key, value]) => {
+      if (value) {
+        filters.$and?.push({
+          $or: [
+            { [`${key}.en`]: new RegExp(`${value}`, "i") },
+            { [`${key}.mm`]: new RegExp(`${value}`, "i") },
+          ],
+        });
+      }
+    });
+
+    // If there are no filters, remove the $and property
+    if (filters.$and?.length === 0) {
+      delete filters.$and;
+    }
+
+    const stops = await this._collection
+      .find(filters)
+      .project(this._defaultProjection)
+      .sort({ id: 1 })
+      .toArray();
+
+    return stops as IStop[];
+  }
+}
