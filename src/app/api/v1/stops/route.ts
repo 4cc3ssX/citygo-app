@@ -1,33 +1,71 @@
 import clientPromise from "@/lib/db";
 import { Stops } from "@/models/stops";
-import { IResponse } from "@/typescript/response";
+import { IResponse, ResponseFormat } from "@/typescript/response";
 import { ReasonPhrases } from "http-status-codes";
-import * as turf from "@turf/helpers";
+import {
+  Feature,
+  FeatureCollection,
+  Point,
+  featureCollection,
+  point,
+} from "@turf/helpers";
 import { NextRequest } from "next/server";
+import { IStop } from "@/typescript/models/stops";
 
 // export const revalidate = 3600;
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
 
-  // searchParams to object
-  const stopSearch = Object.fromEntries(searchParams);
+  // search queries
+  const name = searchParams.get("name") || "";
+  const road = searchParams.get("road") || "";
+  const township = searchParams.get("township") || "";
+
+  // response format
+  const format =
+    (searchParams.get("format") as ResponseFormat) || ResponseFormat.JSON;
+
+  // check supported format
+  if (!Object.values(ResponseFormat).includes(format)) {
+    return Response.json(
+      {
+        status: "error",
+        error: {
+          code: "BAD_REQUEST",
+          message: "Invalid format",
+        },
+        data: null,
+      } as IResponse,
+      { status: 400 }
+    );
+  }
 
   try {
     const client = await clientPromise;
 
     const model = new Stops(client);
-    const stops = await model.getAllStops(stopSearch);
+    const stops = await model.getAllStops({ name, road, township });
 
-    // convert to geojson data
-    const stopFeatures = stops.map(({ lat, lng, id, ...prop }) =>
-      turf.point([lat, lng], prop, { id })
+    let stopFeatures: Feature<Point>[] = [];
+
+    if (format === ResponseFormat.GEOJSON) {
+      // convert to geojson data
+      stops.forEach(({ lat, lng, id, ...prop }) => {
+        stopFeatures.push(point([lat, lng], prop, { id }));
+      });
+    }
+    const stopCollection = featureCollection(stopFeatures);
+
+    return Response.json(
+      {
+        status: "ok",
+        data: format === ResponseFormat.JSON ? stops : stopCollection,
+      } as IResponse<IStop[] | FeatureCollection<Point>>,
+      {
+        status: 200,
+      }
     );
-    const stopCollection = turf.featureCollection(stopFeatures);
-
-    return Response.json({ status: "ok", data: stopCollection } as IResponse, {
-      status: 200,
-    });
   } catch (err) {
     console.log(err);
     return Response.json(

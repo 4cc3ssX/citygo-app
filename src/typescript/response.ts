@@ -1,5 +1,5 @@
 import { ReasonPhrases } from "http-status-codes";
-import { PickByValueExact } from "utility-types";
+import { StringOmit } from ".";
 
 export type ResponseStatus = "ok" | "error";
 
@@ -10,6 +10,11 @@ export interface IResponse<D = any> {
 }
 
 export interface ResponseError {
-  code: StringOmit<keyof PickByValueExact<keyof typeof ReasonPhrases, string>>;
+  code: StringOmit<keyof typeof ReasonPhrases>;
   message: string;
+}
+
+export enum ResponseFormat {
+  JSON = "json",
+  GEOJSON = "geojson",
 }
