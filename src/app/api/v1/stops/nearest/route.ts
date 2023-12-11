@@ -6,13 +6,21 @@ import {
   ResponseFormat,
 } from "@/typescript/response";
 import { ReasonPhrases } from "http-status-codes";
-import { Feature, Point, point } from "@turf/helpers";
+import {
+  Feature,
+  FeatureCollection,
+  Point,
+  Units,
+  featureCollection,
+  point,
+} from "@turf/helpers";
 import distance from "@turf/distance";
 import { NextRequest } from "next/server";
 import { IStop } from "@/typescript/models/stops";
 import { nearestRequestSchema } from "@/helpers/validations/stops";
 import { ZodIssue } from "zod";
 import { convertZodErrorToResponseError } from "@/utils/validations";
+import logger from "@/lib/logger";
 
 // export const revalidate = 3600;
 
@@ -23,6 +31,8 @@ export async function GET(request: NextRequest) {
   const lng = searchParams.get("lng") || "";
   const lat = searchParams.get("lat") || "";
   const count = Number(searchParams.get("count") || "10");
+  const distanceUnit =
+    (searchParams.get("distance_unit") as Units) || "kilometers";
 
   // response format
   const format =
@@ -59,33 +69,38 @@ export async function GET(request: NextRequest) {
     // current location
     const targetPoint = point([Number(lng), Number(lat)]);
 
-    const stopFeatures: Feature<Point>[] = [];
-
     // convert to geojson data
-    stops.forEach(({ lat, lng, id, ...prop }) => {
-      const stopPoint = point(
-        [lng, lat],
-        {
-          ...prop,
-          distance: 0, // default distance
-        },
-        { id }
-      );
-      // calculate distance
-      stopPoint.properties.distance = distance(targetPoint, stopPoint);
+    const stopFeatures: Feature<Point>[] = stops
+      .map(({ lat, lng, id, ...prop }) => {
+        const stopPoint = point(
+          [lng, lat],
+          {
+            ...prop,
+            distance: 0, // default distance
+          },
+          { id }
+        );
+        // calculate distance
+        stopPoint.properties.distance = distance(targetPoint, stopPoint, {
+          units: distanceUnit,
+        });
 
-      stopFeatures.push(stopPoint);
-    });
+        return stopPoint;
+      })
+      .sort((a, b) => a.properties?.distance - b.properties?.distance)
+      .splice(0, count);
 
-    stopFeatures.sort(
-      (a, b) => a.properties?.distance - b.properties?.distance
-    );
+    const nearestStops = featureCollection(stopFeatures);
 
-    const nearestStops = stopFeatures.splice(0, count);
-
-    if (nearestStops.length) {
+    if (stopFeatures.length) {
       stops = stops
-        .filter((stop) => nearestStops.some((ns) => ns.id === stop.id))
+        .filter((stop) => stopFeatures.some((ns) => ns.id === stop.id))
+        .map((stop) => ({
+          ...stop,
+          distance: stopFeatures.find((ns) => ns.id === stop.id)?.properties
+            ?.distance,
+        }))
+        .sort((a, b) => a.distance - b.distance)
         .slice(0, count);
     }
 
@@ -93,13 +108,13 @@ export async function GET(request: NextRequest) {
       {
         status: "ok",
         data: format === ResponseFormat.JSON ? stops : nearestStops,
-      } as IResponse<IStop[] | Feature<Point>[]>,
+      } as IResponse<IStop[] | FeatureCollection<Point>[]>,
       {
         status: 200,
       }
     );
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     return Response.json(
       {
         status: "error",

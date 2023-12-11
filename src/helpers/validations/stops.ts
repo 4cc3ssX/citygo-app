@@ -25,4 +25,21 @@ export const nearestRequestSchema = z.object({
     .min(1, { message: '"count" must be greater than or equal to 1' })
     .max(100, { message: '"count" must be less than or equal to 100' })
     .optional(),
+  distance_unit: z
+    .enum([
+      "meters",
+      "millimeters",
+      "centimeters",
+      "kilometers",
+      "acres",
+      "miles",
+      "nauticalmiles",
+      "inches",
+      "yards",
+      "feet",
+      "radians",
+      "degrees",
+      "hectares",
+    ])
+    .optional(),
 });
