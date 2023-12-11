@@ -10,14 +10,16 @@ import {
   Feature,
   FeatureCollection,
   Point,
-  Units,
   featureCollection,
   point,
 } from "@turf/helpers";
 import distance from "@turf/distance";
 import { NextRequest } from "next/server";
 import { IStop } from "@/typescript/models/stops";
-import { nearestRequestSchema } from "@/helpers/validations/stops";
+import {
+  DistanceUnits,
+  nearestRequestSchema,
+} from "@/helpers/validations/stops";
 import { ZodIssue } from "zod";
 import { convertZodErrorToResponseError } from "@/utils/validations";
 import logger from "@/lib/logger";
@@ -32,7 +34,8 @@ export async function GET(request: NextRequest) {
   const lat = searchParams.get("lat") || "";
   const count = Number(searchParams.get("count") || "10");
   const distanceUnit =
-    (searchParams.get("distance_unit") as Units) || "kilometers";
+    (searchParams.get("distance_unit") as DistanceUnits) ||
+    DistanceUnits.KILOMETERS;
 
   // response format
   const format =
