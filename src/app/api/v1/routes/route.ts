@@ -1,5 +1,5 @@
 import clientPromise from "@/lib/db";
-import { IResponse, ResponseFormat } from "@/typescript/response";
+import { IResponse, ResponseError, ResponseFormat } from "@/typescript/response";
 import { ReasonPhrases } from "http-status-codes";
 import {
   Feature,
@@ -11,6 +11,9 @@ import {
 import { NextRequest } from "next/server";
 import { Routes } from "@/models/routes";
 import { IRoute } from "@/typescript/models/routes";
+import { routesRequestSchema } from "@/helpers/validations/routes";
+import { ZodIssue } from "zod";
+import { convertZodErrorToResponseError } from "@/utils/validations";
 
 // export const revalidate = 3600;
 
@@ -24,19 +27,26 @@ export async function GET(request: NextRequest) {
   const format =
     (searchParams.get("format") as ResponseFormat) || ResponseFormat.JSON;
 
-  // check supported format
-  if (!Object.values(ResponseFormat).includes(format)) {
-    return Response.json(
-      {
-        status: "error",
-        error: {
-          code: "BAD_REQUEST",
-          message: "Invalid format",
-        },
-        data: null,
-      } as IResponse,
-      { status: 400 }
+  // validate request
+  const result = routesRequestSchema.safeParse({
+    id,
+    format,
+  });
+
+  if (!result.success) {
+    const flattenErrors = result.error.flatten<ResponseError>(
+      (issue: ZodIssue) => ({
+        message: issue.message,
+        code: issue.code,
+      })
     );
+    const errors = convertZodErrorToResponseError(flattenErrors);
+
+    return Response.json({
+      status: "error",
+      errors,
+      data: null,
+    });
   }
 
   try {
@@ -45,9 +55,8 @@ export async function GET(request: NextRequest) {
     const model = new Routes(client);
     const routes = await model.getAllRoutes({ route_id: id });
 
-    let routesFeatures: Feature<LineString>[] = [];
-
     if (format === ResponseFormat.GEOJSON) {
+      const routesFeatures: Feature<LineString>[] = [];
       // convert to geojson data
       routes.forEach(({ coordinates, route_id, ...prop }) => {
         routesFeatures.push(
@@ -58,13 +67,24 @@ export async function GET(request: NextRequest) {
           )
         );
       });
+      // geojson feature collection
+      const routeCollection = featureCollection(routesFeatures);
+
+      return Response.json(
+        {
+          status: "ok",
+          data: routeCollection,
+        } as IResponse<IRoute[] | FeatureCollection<LineString>>,
+        {
+          status: 200,
+        }
+      );
     }
-    const routeCollection = featureCollection(routesFeatures);
 
     return Response.json(
       {
         status: "ok",
-        data: format === ResponseFormat.JSON ? routes : routeCollection,
+        data: routes,
       } as IResponse<IRoute[] | FeatureCollection<LineString>>,
       {
         status: 200,

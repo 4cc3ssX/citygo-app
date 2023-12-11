@@ -6,8 +6,11 @@ export type ResponseStatus = "ok" | "error";
 export interface IResponse<D = any> {
   status: ResponseStatus;
   error?: ResponseError | null;
+  errors?: ResponseErrors | null;
   data: D | null;
 }
+
+export type ResponseErrors = Record<string, ResponseError>;
 
 export interface ResponseError {
   code: StringOmit<keyof typeof ReasonPhrases>;
