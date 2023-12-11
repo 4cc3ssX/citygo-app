@@ -2,7 +2,7 @@ import { ICoordinates, ILocalizedString } from ".";
 import { ReplaceValueByType } from "..";
 
 export interface IStop extends ICoordinates {
-  id: string;
+  id: number;
   name: ILocalizedString;
   road: ILocalizedString;
   township: ILocalizedString;
