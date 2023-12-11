@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
     const client = await clientPromise;
 
     const model = new Stops(client);
-    let stops = await model.getAllStops({});
+    const stops = await model.getAllStops({});
 
     // current location
     const targetPoint = point([Number(lng), Number(lat)]);
@@ -90,24 +90,25 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => a.properties?.distance - b.properties?.distance)
       .splice(0, count);
 
-    const nearestStops = featureCollection(stopFeatures);
+    const nearestStopsCollection = featureCollection(stopFeatures);
 
-    if (stopFeatures.length) {
-      stops = stops
-        .filter((stop) => stopFeatures.some((ns) => ns.id === stop.id))
-        .map((stop) => ({
-          ...stop,
-          distance: stopFeatures.find((ns) => ns.id === stop.id)?.properties
-            ?.distance,
-        }))
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, count);
-    }
+    const nearestStops = stops
+      .filter((stop) => stopFeatures.some((ns) => ns.id === stop.id))
+      .map((stop) => ({
+        ...stop,
+        distance: stopFeatures.find((ns) => ns.id === stop.id)?.properties
+          ?.distance,
+      }))
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, count);
 
     return Response.json(
       {
         status: "ok",
-        data: format === ResponseFormat.JSON ? stops : nearestStops,
+        data:
+          format === ResponseFormat.JSON
+            ? nearestStops
+            : nearestStopsCollection,
       } as IResponse<IStop[] | FeatureCollection<Point>[]>,
       {
         status: 200,
