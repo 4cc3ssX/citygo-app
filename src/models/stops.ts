@@ -50,4 +50,18 @@ export class Stops {
 
     return stops as IStop[];
   }
+
+  /**
+   * Retrieves a stop by its ID.
+   *
+   * @param {number} id - The ID of the stop.
+   * @return {Promise<IStop | null>} A promise that resolves to the stop object or null if not found.
+   */
+  async getStop(id: number): Promise<IStop | null> {
+    const stop = await this._collection.findOne(
+      { id },
+      { projection: this._defaultProjection }
+    );
+    return stop;
+  }
 }
