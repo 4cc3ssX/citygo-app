@@ -18,6 +18,7 @@ import { IStop } from "@/typescript/models/stops";
 import { stopsRequestSchema } from "@/helpers/validations/stops";
 import { convertZodErrorToResponseError } from "@/utils/validations";
 import { ZodIssue } from "zod";
+import logger from "@/lib/logger";
 
 // export const revalidate = 3600;
 
@@ -69,6 +70,7 @@ export async function GET(request: NextRequest) {
 
       // geojson feature collection
       const stopCollection = featureCollection(stopFeatures);
+
       return Response.json(
         {
           status: "ok",
@@ -90,7 +92,7 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     return Response.json(
       {
         status: "error",

@@ -1,5 +1,9 @@
 import clientPromise from "@/lib/db";
-import { IResponse, ResponseError, ResponseFormat } from "@/typescript/response";
+import {
+  IResponse,
+  ResponseError,
+  ResponseFormat,
+} from "@/typescript/response";
 import { ReasonPhrases } from "http-status-codes";
 import {
   Feature,
@@ -14,6 +18,7 @@ import { IRoute } from "@/typescript/models/routes";
 import { routesRequestSchema } from "@/helpers/validations/routes";
 import { ZodIssue } from "zod";
 import { convertZodErrorToResponseError } from "@/utils/validations";
+import logger from "@/lib/logger";
 
 // export const revalidate = 3600;
 
@@ -91,7 +96,7 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     return Response.json(
       {
         status: "error",

@@ -1,5 +1,6 @@
 import { stopIdSchema } from "@/helpers/validations/stops";
 import clientPromise from "@/lib/db";
+import logger from "@/lib/logger";
 import { Stops } from "@/models/stops";
 import { IStop } from "@/typescript/models/stops";
 import {
@@ -79,6 +80,7 @@ export async function GET(
 
       // geojson feature collection
       const stopCollection = featureCollection([stopPoint]);
+
       return Response.json(
         {
           status: "ok",
@@ -100,7 +102,7 @@ export async function GET(
       }
     );
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     return Response.json(
       {
         status: "error",
