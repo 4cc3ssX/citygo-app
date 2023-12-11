@@ -21,7 +21,7 @@ export interface IRoute {
   /**
    * The IDs of the bus stop.
    */
-  stop: number[];
+  stops: number[];
   /**
    * The LineString coordinates of the bus stop.
    */

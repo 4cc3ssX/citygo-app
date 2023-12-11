@@ -30,8 +30,8 @@ export class Routes {
       if (value) {
         filters.$and?.push({
           $or: [
-            { [`${key}.en`]: new RegExp(`${value}`, "i") },
-            { [`${key}.mm`]: new RegExp(`${value}`, "i") },
+            { [key]: new RegExp(`${value}`, "i") },
+            { [key]: new RegExp(`${value}`, "i") },
           ],
         });
       }
