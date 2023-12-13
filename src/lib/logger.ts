@@ -18,9 +18,14 @@ const logConfiguration: LoggerOptions = {
   ],
 };
 
-const customFormat = format.printf(({ level, message, label, timestamp }) => {
-  return `[${label}] ${timestamp} ${level}: ${message}`;
-});
+const customFormat = format.printf(
+  ({ level, message, label, timestamp, meta }) => {
+    const logMessage = `[ ${label} ] ${timestamp} ${level}: ${message}`;
+    return meta && meta instanceof Error
+      ? `${logMessage} \n${meta.stack}`
+      : logMessage;
+  }
+);
 
 const logger = createLogger(logConfiguration);
 
@@ -29,6 +34,7 @@ if (process.env.NODE_ENV !== "production") {
   logger.add(
     new transports.Console({
       format: format.combine(
+        format.splat(),
         format.colorize(),
         format.timestamp(),
         format.errors({ stack: true }),

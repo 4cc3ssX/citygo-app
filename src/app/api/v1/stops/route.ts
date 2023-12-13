@@ -25,15 +25,6 @@ import logger from "@/lib/logger";
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
 
-  // search queries
-  const name = searchParams.get("name") || "";
-  const road = searchParams.get("road") || "";
-  const township = searchParams.get("township") || "";
-
-  // response format
-  const format =
-    (searchParams.get("format") as ResponseFormat) || ResponseFormat.JSON;
-
   // validate request
   const result = stopsRequestSchema.safeParse(Object.fromEntries(searchParams));
 
@@ -53,6 +44,15 @@ export async function GET(request: NextRequest) {
       data: null,
     });
   }
+
+  // search queries
+  const name = searchParams.get("name") as string;
+  const road = searchParams.get("road") as string;
+  const township = searchParams.get("township") as string;
+
+  // response format
+  const format =
+    (searchParams.get("format") as ResponseFormat) || ResponseFormat.JSON;
 
   try {
     const client = await clientPromise;

@@ -1,5 +1,6 @@
 import { ICoordinates, ILocalizedString } from ".";
 import { ReplaceValueByType } from "..";
+import { IStop } from "./stops";
 
 export interface IRoute {
   /**
@@ -23,12 +24,17 @@ export interface IRoute {
    */
   stops: number[];
   /**
-   * The LineString coordinates of the bus stop.
+   * The bus route LineString coordinates of the bus line.
    */
   coordinates: ICoordinates[];
 }
 
+export interface IFindRoute extends Omit<IRoute, "stops"> {
+  stops: IStop[];
+  distance: number;
+}
+
 export type IRouteSearchType = Pick<
   Partial<ReplaceValueByType<IRoute, ILocalizedString, string>>,
-  "name" | "route_id"
+  "name" | "route_id" | "stops"
 >;

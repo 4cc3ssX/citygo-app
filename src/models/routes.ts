@@ -1,6 +1,10 @@
 import logger from "@/lib/logger";
 import { ILogger } from "@/typescript/logger";
-import { IRoute, IRouteSearchType } from "@/typescript/models/routes";
+import {
+  IFindRoute,
+  IRoute,
+  IRouteSearchType,
+} from "@/typescript/models/routes";
 import { Collection, Db, Document, Filter, MongoClient } from "mongodb";
 
 export class Routes {
@@ -27,7 +31,7 @@ export class Routes {
 
     // loop through each property in the route object
     Object.entries(route).forEach(([key, value]) => {
-      if (value) {
+      if (typeof value === "string" && value) {
         filters.$and?.push({
           $or: [
             { [key]: new RegExp(`${value}`, "i") },
@@ -48,6 +52,16 @@ export class Routes {
       .sort({ id: 1 })
       .toArray();
 
+    return routes as IRoute[];
+  }
+
+  async getFindRoutes(from: number, to: number): Promise<IRoute[]> {
+    const routes = await this._collection
+      .find({
+        $or: [{ stops: { $all: [from, to] } }, { stops: { $all: [to, from] } }],
+      })
+      .project(this._defaultProjection)
+      .toArray();
     return routes as IRoute[];
   }
 }

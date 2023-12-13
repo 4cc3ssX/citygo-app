@@ -25,18 +25,10 @@ import logger from "@/lib/logger";
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
 
-  // search queries
-  const id = searchParams.get("id") || "";
-
-  // response format
-  const format =
-    (searchParams.get("format") as ResponseFormat) || ResponseFormat.JSON;
-
   // validate request
-  const result = routesRequestSchema.safeParse({
-    id,
-    format,
-  });
+  const result = routesRequestSchema.safeParse(
+    Object.fromEntries(searchParams)
+  );
 
   if (!result.success) {
     const flattenErrors = result.error.flatten<ResponseError>(
@@ -54,6 +46,13 @@ export async function GET(request: NextRequest) {
     });
   }
 
+  // search queries
+  const id = searchParams.get("id") || "";
+
+  // response format
+  const format =
+    (searchParams.get("format") as ResponseFormat) || ResponseFormat.JSON;
+
   try {
     const client = await clientPromise;
 
@@ -61,17 +60,16 @@ export async function GET(request: NextRequest) {
     const routes = await model.getAllRoutes({ route_id: id });
 
     if (format === ResponseFormat.GEOJSON) {
-      const routesFeatures: Feature<LineString>[] = [];
-      // convert to geojson data
-      routes.forEach(({ coordinates, route_id, ...prop }) => {
-        routesFeatures.push(
-          lineString(
+      const routesFeatures: Feature<LineString>[] = routes.map(
+        ({ coordinates, route_id, ...prop }) => {
+          const routeLineString = lineString(
             coordinates.map(({ lng, lat }) => [lng, lat]),
             prop,
             { id: route_id }
-          )
-        );
-      });
+          );
+          return routeLineString;
+        }
+      );
       // geojson feature collection
       const routeCollection = featureCollection(routesFeatures);
 

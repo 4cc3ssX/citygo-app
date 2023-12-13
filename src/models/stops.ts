@@ -27,7 +27,7 @@ export class Stops {
 
     // loop through each property in the stop object
     Object.entries(stop).forEach(([key, value]) => {
-      if (value) {
+      if (typeof value === "string" && value) {
         filters.$and?.push({
           $or: [
             { [`${key}.en`]: new RegExp(`${value}`, "i") },

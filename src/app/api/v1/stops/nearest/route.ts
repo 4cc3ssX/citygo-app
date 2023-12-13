@@ -30,9 +30,9 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
 
   // search queries
-  const lng = searchParams.get("lng") || "";
-  const lat = searchParams.get("lat") || "";
-  const count = Number(searchParams.get("count") || "10");
+  const lng = searchParams.get("lng") as string;
+  const lat = searchParams.get("lat") as string;
+  const count = Number(searchParams.get("count") || 10);
   const distanceUnit =
     (searchParams.get("distance_unit") as DistanceUnits) ||
     DistanceUnits.KILOMETERS;
