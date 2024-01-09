@@ -10,7 +10,6 @@ import {
   FeatureCollection,
   LineString,
   featureCollection,
-  lineString,
 } from "@turf/helpers";
 import { NextRequest } from "next/server";
 import { Routes } from "@/models/routes";
@@ -19,6 +18,7 @@ import { routesRequestSchema } from "@/helpers/validations/routes";
 import { ZodIssue } from "zod";
 import { convertZodErrorToResponseError } from "@/utils/validations";
 import logger from "@/lib/logger";
+import { createLineString } from "@/helpers/models";
 
 // export const revalidate = 3600;
 
@@ -56,17 +56,13 @@ export async function GET(request: NextRequest) {
   try {
     const client = await clientPromise;
 
-    const model = new Routes(client);
-    const routes = await model.getAllRoutes({ route_id: id });
+    const routeModel = new Routes(client);
+    const routes = await routeModel.findAllRoutes({ route_id: id });
 
     if (format === ResponseFormat.GEOJSON) {
       const routesFeatures: Feature<LineString>[] = routes.map(
         ({ coordinates, route_id, ...prop }) => {
-          const routeLineString = lineString(
-            coordinates.map(({ lng, lat }) => [lng, lat]),
-            prop,
-            { id: route_id }
-          );
+          const routeLineString = createLineString(coordinates, route_id, prop);
           return routeLineString;
         }
       );

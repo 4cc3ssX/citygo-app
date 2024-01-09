@@ -57,8 +57,8 @@ export async function GET(request: NextRequest) {
   try {
     const client = await clientPromise;
 
-    const model = new Stops(client);
-    const stops = await model.getAllStops({ name, road, township });
+    const stopModel = new Stops(client);
+    const stops = await stopModel.getAllStops({ name, road, township });
 
     if (format === ResponseFormat.GEOJSON) {
       const stopFeatures: Feature<Point>[] = [];

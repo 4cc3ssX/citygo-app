@@ -56,8 +56,8 @@ export async function GET(
   try {
     const client = await clientPromise;
 
-    const model = new Stops(client);
-    const stop = await model.getStop(id);
+    const stopModel = new Stops(client);
+    const stop = await stopModel.getStop(id);
 
     if (!stop) {
       return Response.json(
@@ -68,7 +68,7 @@ export async function GET(
             message: "Stop not found",
           },
           data: null,
-        },
+        } as IResponse,
         {
           status: 404,
         }

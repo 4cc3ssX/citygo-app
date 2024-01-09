@@ -22,5 +22,5 @@ export interface IStop extends ICoordinates {
 
 export type IStopSearchType = Pick<
   Partial<ReplaceValueByType<IStop, ILocalizedString, string>>,
-  "name" | "road" | "township"
+  "id" | "name" | "road" | "township"
 >;
