@@ -3,7 +3,7 @@ import {
   ITransferPoint,
   ITransitRoute,
 } from "@/typescript/models/routes";
-import { findInBetweenStops, isRequiredToReverseStops } from "./stops";
+import { StopModelHelper } from "./stops";
 import { Feature, Point, point } from "@turf/helpers";
 import { IStop } from "@/typescript/models/stops";
 import { createLineSlice, createLineString } from ".";
@@ -86,7 +86,9 @@ export class RouteModelHelper {
     const visitedRoute = new Set<IRoute>();
 
     for (const fromRoute of fromTransferPoint.routes) {
-      const isRequiredToReverse = isRequiredToReverseStops(this.from);
+      const isRequiredToReverse = StopModelHelper.isRequiredToReverseStops(
+        this.from
+      );
 
       const fromRouteLineString = createLineString(
         fromRoute.coordinates,
@@ -116,7 +118,11 @@ export class RouteModelHelper {
             {
               transit: {
                 id: fromRoute.route_id,
-                stops: findInBetweenStops(this.from, this.to, fromRoute.stops),
+                stops: StopModelHelper.findInBetweenStops(
+                  this.from,
+                  this.to,
+                  fromRoute.stops
+                ),
               },
             },
           ],
@@ -181,13 +187,13 @@ export class RouteModelHelper {
               visitedRoute.add(toRoute);
             }
 
-            const fromStopRouteSlice = findInBetweenStops(
+            const fromStopRouteSlice = StopModelHelper.findInBetweenStops(
               this.from,
               commonStop.id,
               fromRoute.stops
             );
 
-            const toStopRouteSlice = findInBetweenStops(
+            const toStopRouteSlice = StopModelHelper.findInBetweenStops(
               commonStop.id,
               this.to,
               toRoute.stops
@@ -308,19 +314,19 @@ export class RouteModelHelper {
               stop.id === joinEndCommonStops.at(isRequiredToReverse ? -1 : 0)
           ) as IStop;
 
-          const fromStopRouteSlice = findInBetweenStops(
+          const fromStopRouteSlice = StopModelHelper.findInBetweenStops(
             this.from,
             commonStartStop.id,
             fromRoute.stops
           );
 
-          const joinStopRouteSlice = findInBetweenStops(
+          const joinStopRouteSlice = StopModelHelper.findInBetweenStops(
             commonStartStop.id,
             commonEndStop.id,
             joinRoute.stops
           );
 
-          const toStopRouteSlice = findInBetweenStops(
+          const toStopRouteSlice = StopModelHelper.findInBetweenStops(
             commonEndStop.id,
             this.to,
             toRoute.stops
@@ -437,13 +443,5 @@ export class RouteModelHelper {
         return 1;
       })
       .slice(0, count);
-  }
-
-  public findPossibleRoutes(fromRoutes: IRoute[], toRoute: IRoute[]) {
-    return fromRoutes.filter((fromRoute) => {
-      return fromRoute.stops.filter((fsid) =>
-        toRoute.some((tr) => tr.stops.some((tsid) => tsid === fsid))
-      );
-    });
   }
 }
