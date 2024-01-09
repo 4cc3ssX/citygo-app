@@ -60,8 +60,11 @@ export class Stops {
   async getStop(id: number): Promise<IStop | null> {
     const stop = await this._collection.findOne(
       { id },
-      { projection: this._defaultProjection }
+      {
+        projection: this._defaultProjection,
+      }
     );
+
     return stop;
   }
 }

@@ -9,5 +9,10 @@ export const routesRequestSchema = z.object({
 export const findRoutesRequestSchema = z.object({
   from: z.string({ required_error: '"from" is required' }),
   to: z.string({ required_error: '"to" is required' }),
+  count: z.number().min(10).optional(),
+});
+
+export const routeIdSchema = z.object({
+  id: z.string({ invalid_type_error: '"id" must be a string' }),
   format: z.nativeEnum(ResponseFormat).optional(),
 });

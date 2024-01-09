@@ -66,8 +66,8 @@ export async function GET(request: NextRequest) {
   try {
     const client = await clientPromise;
 
-    const model = new Stops(client);
-    const stops = await model.getAllStops({});
+    const stopModel = new Stops(client);
+    const stops = await stopModel.getAllStops({});
 
     // current location
     const targetPoint = point([Number(lng), Number(lat)]);

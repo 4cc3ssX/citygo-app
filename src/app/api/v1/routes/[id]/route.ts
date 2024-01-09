@@ -1,8 +1,9 @@
-import { stopIdSchema } from "@/helpers/validations/stops";
+import { createLineString } from "@/helpers/models";
+import { routeIdSchema } from "@/helpers/validations/routes";
 import clientPromise from "@/lib/db";
 import logger from "@/lib/logger";
-import { Stops } from "@/models/stops";
-import { IStop } from "@/typescript/models/stops";
+import { Routes } from "@/models/routes";
+import { IRoute } from "@/typescript/models/routes";
 import {
   IResponse,
   ResponseError,
@@ -11,11 +12,11 @@ import {
 import { convertZodErrorToResponseError } from "@/utils/validations";
 import {
   FeatureCollection,
-  Point,
+  LineString,
   featureCollection,
-  point,
 } from "@turf/helpers";
 import { ReasonPhrases } from "http-status-codes";
+import { omit } from "lodash-es";
 import { NextRequest } from "next/server";
 import { ZodIssue } from "zod";
 
@@ -23,7 +24,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const id = Number(params.id);
+  const id = params.id;
 
   const searchParams = request.nextUrl.searchParams;
 
@@ -32,7 +33,7 @@ export async function GET(
     (searchParams.get("format") as ResponseFormat) || ResponseFormat.JSON;
 
   // validate request
-  const result = stopIdSchema.safeParse({
+  const result = routeIdSchema.safeParse({
     id,
     format,
   });
@@ -56,16 +57,16 @@ export async function GET(
   try {
     const client = await clientPromise;
 
-    const stopModel = new Stops(client);
-    const stop = await stopModel.getStop(id);
+    const routeModel = new Routes(client);
+    const route = await routeModel.getRoute(id);
 
-    if (!stop) {
+    if (!route) {
       return Response.json(
         {
           status: "error",
           error: {
             code: "NOT_FOUND",
-            message: "Stop not found",
+            message: "Route not found",
           },
           data: null,
         } as IResponse,
@@ -75,17 +76,21 @@ export async function GET(
       );
     }
     if (format === ResponseFormat.GEOJSON) {
-      const { lng, lat, ...prop } = stop;
-      const stopPoint = point([lng, lat], prop, { id });
+      const routeLineString = createLineString(
+        route.coordinates,
+
+        route.route_id,
+        omit(route, "coordinates")
+      );
 
       // geojson feature collection
-      const stopCollection = featureCollection([stopPoint]);
+      const routeCollection = featureCollection([routeLineString]);
 
       return Response.json(
         {
           status: "ok",
-          data: stopCollection,
-        } as IResponse<FeatureCollection<Point>>,
+          data: routeCollection,
+        } as IResponse<FeatureCollection<LineString>>,
         {
           status: 200,
         }
@@ -95,8 +100,8 @@ export async function GET(
     return Response.json(
       {
         status: "ok",
-        data: stop,
-      } as IResponse<IStop>,
+        data: route,
+      } as IResponse<IRoute>,
       {
         status: 200,
       }

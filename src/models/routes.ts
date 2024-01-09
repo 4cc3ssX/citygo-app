@@ -1,10 +1,6 @@
 import logger from "@/lib/logger";
 import { ILogger } from "@/typescript/logger";
-import {
-  IFindRoute,
-  IRoute,
-  IRouteSearchType,
-} from "@/typescript/models/routes";
+import { IRoute, IRouteSearchType } from "@/typescript/models/routes";
 import { Collection, Db, Document, Filter, MongoClient } from "mongodb";
 
 export class Routes {
@@ -26,7 +22,7 @@ export class Routes {
    * @param {IRouteSearchType} route The search criteria for routes.
    * @return {Promise<IRoute[]>} A promise that resolves to an array of routes.
    */
-  async getAllRoutes(route: IRouteSearchType): Promise<IRoute[]> {
+  async findAllRoutes(route: IRouteSearchType): Promise<IRoute[]> {
     const filters: Filter<IRoute> = { $and: [] };
 
     // loop through each property in the route object
@@ -55,13 +51,20 @@ export class Routes {
     return routes as IRoute[];
   }
 
-  async getFindRoutes(from: number, to: number): Promise<IRoute[]> {
-    const routes = await this._collection
-      .find({
-        $or: [{ stops: { $all: [from, to] } }, { stops: { $all: [to, from] } }],
-      })
-      .project(this._defaultProjection)
-      .toArray();
-    return routes as IRoute[];
+  /**
+   * Retrieves a route by its ID.
+   *
+   * @param {string} id - The ID of the route.
+   * @return {Promise<IRoute | null>} A promise that resolves to the route object or null if not found.
+   */
+  async getRoute(id: string): Promise<IRoute | null> {
+    const route = await this._collection.findOne(
+      { route_id: id },
+      {
+        projection: this._defaultProjection,
+      }
+    );
+
+    return route;
   }
 }
