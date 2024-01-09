@@ -1,6 +1,5 @@
 import { ICoordinates, ILocalizedString } from ".";
 import { ReplaceValueByType } from "..";
-import { IStop } from "./stops";
 
 export interface IRoute {
   /**
@@ -29,9 +28,37 @@ export interface IRoute {
   coordinates: ICoordinates[];
 }
 
-export interface IFindRoute extends Omit<IRoute, "stops"> {
-  stops: IStop[];
+export interface ITransitRoute {
+  id: string;
+  route: Omit<IRoute, "stops" | "coordinates">[];
+  transitSteps: ITransitSteps[];
+  coordinates: ICoordinates[];
   distance: number;
+}
+
+export enum ITransitType {
+  TRANSIT = "transit",
+  WALK = "walk",
+}
+
+export interface ITransitSteps {
+  [ITransitType.TRANSIT]: ITransitStop;
+  [ITransitType.WALK]?: ITransitWalk;
+}
+
+export interface ITransitStop {
+  id: string;
+  stops: number[];
+}
+
+export interface ITransitWalk {
+  from: ICoordinates;
+  to: ICoordinates;
+}
+
+export interface ITransferPoint {
+  stop: number;
+  routes: IRoute[];
 }
 
 export type IRouteSearchType = Pick<
