@@ -11,16 +11,22 @@
   "dependencies": {
     "@turf/distance": "patch:@turf/distance@npm%3A6.5.0#~/.yarn/patches/@turf-distance-npm-6.5.0-31f0d31a23.patch",
     "@turf/helpers": "patch:@turf/helpers@npm%3A6.5.0#~/.yarn/patches/@turf-helpers-npm-6.5.0-a40ad42565.patch",
+    "@turf/length": "patch:@turf/length@npm%3A6.5.0#~/.yarn/patches/@turf-length-npm-6.5.0-a4605ff17c.patch",
+    "@turf/line-slice": "patch:@turf/line-slice@npm%3A6.5.0#~/.yarn/patches/@turf-line-slice-npm-6.5.0-f0b240f5af.patch",
+    "@turf/nearest-point-on-line": "patch:@turf/nearest-point-on-line@npm%3A6.5.0#~/.yarn/patches/@turf-nearest-point-on-line-npm-6.5.0-eaa67a26e0.patch",
     "http-status-codes": "^2.3.0",
+    "lodash-es": "^4.17.21",
     "mongodb": "^6.3.0",
     "next": "14.0.4",
     "react": "^18",
     "react-dom": "^18",
     "utility-types": "^3.10.0",
     "winston": "^3.11.0",
+    "winston-daily-rotate-file": "^4.7.1",
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@types/lodash-es": "^4",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
@@ -37,6 +43,7 @@
   "packageManager": "yarn@4.0.2",
   "resolutions": {
     "@turf/helpers@npm:^6.5.0": "patch:@turf/helpers@npm%3A6.5.0#~/.yarn/patches/@turf-helpers-npm-6.5.0-a40ad42565.patch",
-    "@turf/helpers@npm:6.x": "patch:@turf/helpers@npm%3A6.5.0#~/.yarn/patches/@turf-helpers-npm-6.5.0-a40ad42565.patch"
+    "@turf/helpers@npm:6.x": "patch:@turf/helpers@npm%3A6.5.0#~/.yarn/patches/@turf-helpers-npm-6.5.0-a40ad42565.patch",
+    "@turf/distance@npm:^6.5.0": "patch:@turf/distance@npm%3A6.5.0#~/.yarn/patches/@turf-distance-npm-6.5.0-31f0d31a23.patch"
   }
 }
