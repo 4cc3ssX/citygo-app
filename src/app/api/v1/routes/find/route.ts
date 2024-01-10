@@ -11,6 +11,31 @@ import { DistanceUnits } from "@/helpers/validations/stops";
 import { Stops } from "@/models/stops";
 import { RouteModelHelper } from "@/helpers/models/routes";
 
+/**
+ * @swagger
+ * /api/v1/routes/find:
+ *   get:
+ *     summary: Find possible routes
+ *     tags:
+ *       - routes
+ *     parameters:
+ *       - name: from
+ *         in: query
+ *         type: number
+ *       - name: to
+ *         in: query
+ *         type: number
+ *       - name: distance_unit
+ *         in: query
+ *         type: string
+ *         enum: [meters, millimeters, centimeters, kilometers, acres, miles, nauticalmiles, inches, yards, feet, radians, degrees, hectares]
+ *       - name: count
+ *         in: query
+ *         type: integer
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const count = Number(searchParams.get("count") || 10);

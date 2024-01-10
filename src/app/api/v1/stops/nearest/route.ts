@@ -26,6 +26,35 @@ import logger from "@/lib/logger";
 
 // export const revalidate = 3600;
 
+/**
+ * @swagger
+ * /api/v1/stops/nearest:
+ *   get:
+ *     summary: Get nearest stop
+ *     tags:
+ *       - stops
+ *     parameters:
+ *       - name: lat
+ *         in: query
+ *         type: number
+ *       - name: lng
+ *         in: query
+ *         type: number
+ *       - name: distance_unit
+ *         in: query
+ *         type: string
+ *         enum: [meters, millimeters, centimeters, kilometers, acres, miles, nauticalmiles, inches, yards, feet, radians, degrees, hectares]
+ *       - name: format
+ *         in: query
+ *         type: string
+ *         enum: [json, geojson]
+ *       - name: count
+ *         in: query
+ *         type: integer
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
 

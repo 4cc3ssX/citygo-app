@@ -1,6 +1,7 @@
 {
   "name": "onebus-app",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "OneBus is a Next.js application designed to provide effortless bus route and stop searches. This API enables users to retrieve information about bus line routes, stops, and perform health checks. Explore the various endpoints to access valuable data related to the OneBus transportation system.",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,6 +9,22 @@
     "start": "next start",
     "lint": "next lint"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/4cc3ssX/onebus-app"
+  },
+  "keywords": [
+    "onebus-app",
+    "onebus-api",
+    "bus",
+    "onebus"
+  ],
+  "author": "Ryam",
+  "license": "CC BY-NC 4.0",
+  "bugs": {
+    "url": "https://github.com/4cc3ssX/onebus-app/issues"
+  },
+  "homepage": "https://github.com/4cc3ssX/onebus-app#readme",
   "dependencies": {
     "@turf/distance": "patch:@turf/distance@npm%3A6.5.0#~/.yarn/patches/@turf-distance-npm-6.5.0-31f0d31a23.patch",
     "@turf/helpers": "patch:@turf/helpers@npm%3A6.5.0#~/.yarn/patches/@turf-helpers-npm-6.5.0-a40ad42565.patch",
@@ -18,8 +35,10 @@
     "lodash-es": "^4.17.21",
     "mongodb": "^6.3.0",
     "next": "14.0.4",
+    "next-swagger-doc": "^0.4.0",
     "react": "^18",
     "react-dom": "^18",
+    "swagger-ui-react": "^5.11.0",
     "utility-types": "^3.10.0",
     "winston": "^3.11.0",
     "winston-daily-rotate-file": "^4.7.1",
@@ -30,6 +49,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/swagger-ui-react": "^4.18.3",
     "@typescript-eslint/eslint-plugin": "^6.13.2",
     "@typescript-eslint/parser": "^6.13.2",
     "autoprefixer": "^10.0.1",
