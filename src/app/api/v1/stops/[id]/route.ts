@@ -19,6 +19,26 @@ import { ReasonPhrases } from "http-status-codes";
 import { NextRequest } from "next/server";
 import { ZodIssue } from "zod";
 
+/**
+ * @swagger
+ * /api/v1/stops/{id}:
+ *   get:
+ *     summary: Get a stop by ID
+ *     tags:
+ *       - stops
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         type: string
+ *       - name: format
+ *         in: query
+ *         type: string
+ *         enum: [json, geojson]
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }

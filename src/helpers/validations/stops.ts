@@ -3,7 +3,7 @@ import { z } from "zod";
 import { lngRegex, latRegex } from ".";
 
 /**
- * Supported distance units to use when searching for nearest stops
+ * Supported distance units to use when searching routes and stops
  */
 export enum DistanceUnits {
   METERS = "meters",

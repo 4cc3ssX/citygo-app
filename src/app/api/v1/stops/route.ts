@@ -22,6 +22,31 @@ import logger from "@/lib/logger";
 
 // export const revalidate = 3600;
 
+/**
+ * @swagger
+ * /api/v1/stops:
+ *   get:
+ *     summary: Get all bus stops
+ *     tags:
+ *       - stops
+ *     parameters:
+ *       - name: name
+ *         in: query
+ *         type: string
+ *       - name: road
+ *         in: query
+ *         type: string
+ *       - name: township
+ *         in: query
+ *         type: string
+ *       - name: format
+ *         in: query
+ *         type: string
+ *         enum: [json, geojson]
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
 

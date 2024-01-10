@@ -22,6 +22,17 @@ import { createLineString } from "@/helpers/models";
 
 // export const revalidate = 3600;
 
+/**
+ * @swagger
+ * /api/v1/routes:
+ *   get:
+ *     summary: Get all bus line routes
+ *     tags:
+ *       - routes
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
 

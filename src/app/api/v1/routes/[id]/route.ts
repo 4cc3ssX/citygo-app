@@ -20,6 +20,26 @@ import { omit } from "lodash-es";
 import { NextRequest } from "next/server";
 import { ZodIssue } from "zod";
 
+/**
+ * @swagger
+ * /api/v1/routes/{id}:
+ *   get:
+ *     summary: Get bus line routes by ID
+ *     tags:
+ *       - routes
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         type: string
+ *       - name: format
+ *         in: query
+ *         type: string
+ *         enum: [json, geojson]
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
