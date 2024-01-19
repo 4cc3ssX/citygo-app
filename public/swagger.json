@@ -1,0 +1,246 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OneBus API",
+    "version": "1.0.0",
+    "description": "OneBus is a Next.js application designed to provide effortless bus route and stop searches. This API enables users to retrieve information about bus line routes, stops, and perform health checks. Explore the various endpoints to access valuable data related to the OneBus transportation system."
+  },
+  "paths": {
+    "/api/v1/healthz": {
+      "get": {
+        "summary": "Health Check",
+        "tags": [
+          "healthz"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/routes/{id}": {
+      "get": {
+        "summary": "Get bus line routes by ID",
+        "tags": [
+          "routes"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "type": "string",
+            "enum": [
+              "json",
+              "geojson"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/v1/routes/find": {
+      "get": {
+        "summary": "Find possible routes",
+        "tags": [
+          "routes"
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "type": "number"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "type": "number"
+          },
+          {
+            "name": "distance_unit",
+            "in": "query",
+            "type": "string",
+            "enum": [
+              "meters",
+              "millimeters",
+              "centimeters",
+              "kilometers",
+              "acres",
+              "miles",
+              "nauticalmiles",
+              "inches",
+              "yards",
+              "feet",
+              "radians",
+              "degrees",
+              "hectares"
+            ]
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/v1/routes": {
+      "get": {
+        "summary": "Get all bus line routes",
+        "tags": [
+          "routes"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/v1/stops/{id}": {
+      "get": {
+        "summary": "Get a stop by ID",
+        "tags": [
+          "stops"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "type": "string",
+            "enum": [
+              "json",
+              "geojson"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/v1/stops/nearest": {
+      "get": {
+        "summary": "Get nearest stop",
+        "tags": [
+          "stops"
+        ],
+        "parameters": [
+          {
+            "name": "lat",
+            "in": "query",
+            "type": "number"
+          },
+          {
+            "name": "lng",
+            "in": "query",
+            "type": "number"
+          },
+          {
+            "name": "distance_unit",
+            "in": "query",
+            "type": "string",
+            "enum": [
+              "meters",
+              "millimeters",
+              "centimeters",
+              "kilometers",
+              "acres",
+              "miles",
+              "nauticalmiles",
+              "inches",
+              "yards",
+              "feet",
+              "radians",
+              "degrees",
+              "hectares"
+            ]
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "type": "string",
+            "enum": [
+              "json",
+              "geojson"
+            ]
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/v1/stops": {
+      "get": {
+        "summary": "Get all bus stops",
+        "tags": [
+          "stops"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "road",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "township",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "type": "string",
+            "enum": [
+              "json",
+              "geojson"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    }
+  },
+  "components": {},
+  "tags": []
+}
