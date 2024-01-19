@@ -4,8 +4,8 @@
   "description": "OneBus is a Next.js application designed to provide effortless bus route and stop searches. This API enables users to retrieve information about bus line routes, stops, and perform health checks. Explore the various endpoints to access valuable data related to the OneBus transportation system.",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --turbo",
+    "build": "yarn next-swagger-doc-cli next-swagger-doc.json && next build",
     "start": "next start",
     "lint": "next lint"
   },
