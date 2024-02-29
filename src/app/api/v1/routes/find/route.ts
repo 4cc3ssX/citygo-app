@@ -10,40 +10,61 @@ import { ZodIssue } from "zod";
 import { DistanceUnits } from "@/helpers/validations/stops";
 import { Stops } from "@/models/stops";
 import { RouteModelHelper } from "@/helpers/models/routes";
+import { isEmpty } from "lodash-es";
+import { ITransitRoute } from "@/typescript/models/routes";
+import { IFindRoutes } from "@/typescript/request";
 
 /**
  * @swagger
  * /api/v1/routes/find:
- *   get:
+ *   post:
  *     summary: Find possible routes
  *     tags:
  *       - routes
  *     parameters:
- *       - name: from
- *         in: query
- *         type: number
- *       - name: to
- *         in: query
- *         type: number
- *       - name: distance_unit
- *         in: query
- *         type: string
- *         enum: [meters, millimeters, centimeters, kilometers, acres, miles, nauticalmiles, inches, yards, feet, radians, degrees, hectares]
- *       - name: count
- *         in: query
- *         type: integer
+ *       - name: body
+ *         in: body
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             from:
+ *               type: object
+ *               properties:
+ *                 preferId:
+ *                   type: integer
+ *                 name:
+ *                   type: string
+ *                 road:
+ *                   type: string
+ *                 township:
+ *                   type: string
+ *             to:
+ *               type: object
+ *               properties:
+ *                 preferId:
+ *                   type: integer
+ *                 name:
+ *                   type: string
+ *                 road:
+ *                   type: string
+ *                 township:
+ *                   type: string
  *     responses:
  *       200:
  *         description: Successful response
  */
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
+  const body = (await request.json()) as IFindRoutes;
   const searchParams = request.nextUrl.searchParams;
   const count = Number(searchParams.get("count") || 10);
+  const format = searchParams.get("format");
 
   // validate request
   const result = findRoutesRequestSchema.safeParse({
-    ...Object.fromEntries(searchParams),
+    ...body,
     count,
+    format,
   });
 
   if (!result.success) {
@@ -63,8 +84,8 @@ export async function GET(request: NextRequest) {
   }
 
   // search queries
-  const from = Number(searchParams.get("from"));
-  const to = Number(searchParams.get("to"));
+  const from = body.from;
+  const to = body.to;
   const distanceUnit =
     (searchParams.get("distance_unit") as DistanceUnits) ||
     DistanceUnits.KILOMETERS;
@@ -77,18 +98,24 @@ export async function GET(request: NextRequest) {
     const routesModel = new Routes(client);
 
     // Fetch all stops
-    const stops = await stopsModel.getAllStops({});
+    const stops = await stopsModel.searchStops({});
+    const fromStops = await stopsModel.searchStops(from);
+    const toStops = await stopsModel.searchStops(to);
 
-    // find from, to stops
-    const fromStop = stops.find((stop) => stop.id === from);
-    const toStop = stops.find((stop) => stop.id === to);
-
-    if (!fromStop || !toStop || from === to) {
-      const missingStop = !fromStop ? from : to;
+    if (
+      isEmpty(fromStops) ||
+      isEmpty(toStops) ||
+      (from.name === to.name &&
+        from.road === to.road &&
+        from.township === to.township)
+    ) {
+      const missingStop = isEmpty(fromStops) ? from : to;
       const message =
         from === to
           ? 'Invalid "from" and "to" stops.'
-          : `${!fromStop ? "From" : "To"} stop (${missingStop}) not found`;
+          : `${
+              isEmpty(fromStops) ? "From" : "To"
+            } stop (${missingStop}) not found`;
 
       return Response.json(
         {
@@ -105,26 +132,56 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // sort from and to by prefer id
+    fromStops.sort((fa, fb) => {
+      if (fa.id === from.preferId) return -1; // Place the stop with prefer id first
+      if (fb.id === from.preferId) return 1; // Place the stop with prefer id first
+      return 0; // Keep the order unchanged for other elements
+    });
+
+    toStops.sort((a, b) => {
+      if (a.id === to.preferId) return -1; // Place the stop with prefer id first
+      if (b.id === to.preferId) return 1; // Place the stop with prefer id first
+      return 0; // Keep the order unchanged for other elements
+    });
+
     // Fetch all routes
     const allRoutes = await routesModel.findAllRoutes({});
 
-    // start - end points
-    const startPoint = point([fromStop.lng, fromStop.lat], fromStop, {
-      id: from,
-    });
-    const endPoint = point([toStop.lng, toStop.lat], toStop, { id: to });
+    let possibleRoutes: ITransitRoute[] = [];
 
-    const routeModelHelper = new RouteModelHelper(
-      stops,
-      allRoutes,
-      from,
-      to,
-      startPoint,
-      endPoint,
-      distanceUnit
-    );
+    for await (const fromStop of fromStops) {
+      if (possibleRoutes.length === count) {
+        break;
+      }
 
-    const possibleRoutes = routeModelHelper.findTransitRoutes({ count });
+      for await (const toStop of toStops) {
+        if (possibleRoutes.length === count) {
+          break;
+        }
+
+        // start - end points
+        const startPoint = point([fromStop.lng, fromStop.lat], fromStop, {
+          id: fromStop.id,
+        });
+        const endPoint = point([toStop.lng, toStop.lat], toStop, {
+          id: toStop.id,
+        });
+
+        const routeModelHelper = new RouteModelHelper(
+          stops,
+          allRoutes,
+          fromStop.id,
+          toStop.id,
+          startPoint,
+          endPoint,
+          distanceUnit
+        );
+        const result = routeModelHelper.findTransitRoutes({ count });
+
+        possibleRoutes = possibleRoutes.concat(result);
+      }
+    }
 
     return Response.json(
       {

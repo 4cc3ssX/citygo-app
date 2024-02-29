@@ -1,14 +1,8 @@
 import type { Metadata } from "next";
-import { Poppins as FontSans } from "next/font/google";
 
 import "./globals.css";
 import { cn } from "@/utils/shadcn";
-
-export const fontSans = FontSans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  weight: ["400", "500", "700"],
-});
+import { fontSans } from "@/theme/fonts";
 
 export const metadata: Metadata = {
   title: "Create Next App",

@@ -2,6 +2,7 @@ import {
   IRoute,
   ITransferPoint,
   ITransitRoute,
+  TransitType,
 } from "@/typescript/models/routes";
 import { StopModelHelper } from "./stops";
 import { Feature, Point, point } from "@turf/helpers";
@@ -116,7 +117,8 @@ export class RouteModelHelper {
           route: [fromRoute],
           transitSteps: [
             {
-              transit: {
+              type: TransitType.TRANSIT,
+              step: {
                 id: fromRoute.route_id,
                 stops: StopModelHelper.findInBetweenStops(
                   this.from,
@@ -233,13 +235,15 @@ export class RouteModelHelper {
               ],
               transitSteps: [
                 {
-                  transit: {
+                  type: TransitType.TRANSIT,
+                  step: {
                     id: fromRoute.route_id,
                     stops: fromStopRouteSlice,
                   },
                 },
                 {
-                  transit: {
+                  type: TransitType.TRANSIT,
+                  step: {
                     id: toRoute.route_id,
                     stops: toStopRouteSlice,
                   },
@@ -390,19 +394,22 @@ export class RouteModelHelper {
             ],
             transitSteps: [
               {
-                transit: {
+                type: TransitType.TRANSIT,
+                step: {
                   id: fromRoute.route_id,
                   stops: fromStopRouteSlice,
                 },
               },
               {
-                transit: {
+                type: TransitType.TRANSIT,
+                step: {
                   id: joinRoute.route_id,
                   stops: joinStopRouteSlice,
                 },
               },
               {
-                transit: {
+                type: TransitType.TRANSIT,
+                step: {
                   id: toRoute.route_id,
                   stops: toStopRouteSlice,
                 },

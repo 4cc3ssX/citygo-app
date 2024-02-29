@@ -1,6 +1,6 @@
 import logger from "@/lib/logger";
 import { ILogger } from "@/typescript/logger";
-import { IStop, IStopSearchType } from "@/typescript/models/stops";
+import { IStop, ISearchStops } from "@/typescript/models/stops";
 import { Collection, Db, Document, Filter, MongoClient } from "mongodb";
 
 export class Stops {
@@ -19,10 +19,10 @@ export class Stops {
   /**
    * Retrieves all stops based on the given search criteria.
    *
-   * @param {IStopSearchType} stop The search criteria for the stops.
+   * @param {ISearchStops} stop The search criteria for the stops.
    * @return {Promise<IStop[]>} A promise that resolves to an array of stops.
    */
-  async getAllStops(stop: IStopSearchType): Promise<IStop[]> {
+  async searchStops(stop: ISearchStops): Promise<IStop[]> {
     const filters: Filter<IStop> = { $and: [] };
 
     // loop through each property in the stop object

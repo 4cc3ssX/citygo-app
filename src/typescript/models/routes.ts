@@ -36,14 +36,14 @@ export interface ITransitRoute {
   distance: number;
 }
 
-export enum ITransitType {
+export enum TransitType {
   TRANSIT = "transit",
   WALK = "walk",
 }
 
 export interface ITransitSteps {
-  [ITransitType.TRANSIT]: ITransitStop;
-  [ITransitType.WALK]?: ITransitWalk;
+  type: TransitType;
+  step: ITransitStop | ITransitWalk;
 }
 
 export interface ITransitStop {

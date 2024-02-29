@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
     const client = await clientPromise;
 
     const stopModel = new Stops(client);
-    const stops = await stopModel.getAllStops({});
+    const stops = await stopModel.searchStops({});
 
     // current location
     const targetPoint = point([Number(lng), Number(lat)]);

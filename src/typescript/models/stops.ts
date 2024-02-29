@@ -20,7 +20,7 @@ export interface IStop extends ICoordinates {
   township: ILocalizedString;
 }
 
-export type IStopSearchType = Pick<
+export type ISearchStops = Pick<
   Partial<ReplaceValueByType<IStop, ILocalizedString, string>>,
   "id" | "name" | "road" | "township"
 >;
