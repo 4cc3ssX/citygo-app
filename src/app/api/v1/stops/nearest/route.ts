@@ -16,13 +16,11 @@ import {
 import distance from "@turf/distance";
 import { NextRequest } from "next/server";
 import { IStop } from "@/typescript/models/stops";
-import {
-  DistanceUnits,
-  nearestRequestSchema,
-} from "@/helpers/validations/stops";
+import { DistanceUnits } from "@/helpers/validations";
 import { ZodIssue } from "zod";
 import { convertZodErrorToResponseError } from "@/utils/validations";
 import logger from "@/lib/logger";
+import { nearestRequestSchema } from "@/helpers/validations/stops";
 
 // export const revalidate = 3600;
 

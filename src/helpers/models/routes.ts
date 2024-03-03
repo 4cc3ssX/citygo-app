@@ -9,7 +9,7 @@ import { Feature, Point, point } from "@turf/helpers";
 import { IStop } from "@/typescript/models/stops";
 import { createLineSlice, createLineString } from ".";
 import length from "@turf/length";
-import { DistanceUnits } from "../validations/stops";
+import { DistanceUnits } from "../validations";
 import { ICoordinates } from "@/typescript/models";
 import { intersection, omit } from "lodash-es";
 
@@ -120,6 +120,7 @@ export class RouteModelHelper {
               type: TransitType.TRANSIT,
               step: {
                 id: fromRoute.route_id,
+                color: fromRoute.color,
                 stops: StopModelHelper.findInBetweenStops(
                   this.from,
                   this.to,
@@ -238,6 +239,7 @@ export class RouteModelHelper {
                   type: TransitType.TRANSIT,
                   step: {
                     id: fromRoute.route_id,
+                    color: fromRoute.color,
                     stops: fromStopRouteSlice,
                   },
                 },
@@ -245,6 +247,7 @@ export class RouteModelHelper {
                   type: TransitType.TRANSIT,
                   step: {
                     id: toRoute.route_id,
+                    color: toRoute.color,
                     stops: toStopRouteSlice,
                   },
                 },
@@ -397,6 +400,7 @@ export class RouteModelHelper {
                 type: TransitType.TRANSIT,
                 step: {
                   id: fromRoute.route_id,
+                  color: fromRoute.color,
                   stops: fromStopRouteSlice,
                 },
               },
@@ -404,6 +408,7 @@ export class RouteModelHelper {
                 type: TransitType.TRANSIT,
                 step: {
                   id: joinRoute.route_id,
+                  color: joinRoute.color,
                   stops: joinStopRouteSlice,
                 },
               },
@@ -411,6 +416,7 @@ export class RouteModelHelper {
                 type: TransitType.TRANSIT,
                 step: {
                   id: toRoute.route_id,
+                  color: toRoute.color,
                   stops: toStopRouteSlice,
                 },
               },

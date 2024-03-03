@@ -8,11 +8,13 @@ export const routesRequestSchema = z.object({
 
 export const findRoutesRequestSchema = z.object({
   from: z.object({
+    preferId: z.number({ required_error: '"from.preferId" is required' }),
     name: z.string({ required_error: '"from.name" is required' }),
     road: z.string({ required_error: '"from.road" is required' }),
     township: z.string({ required_error: '"from.township" is required' }),
   }),
   to: z.object({
+    preferId: z.number({ required_error: '"from.preferId" is required' }),
     name: z.string({ required_error: '"to.name" is required' }),
     road: z.string({ required_error: '"to.road" is required' }),
     township: z.string({ required_error: '"to.township" is required' }),

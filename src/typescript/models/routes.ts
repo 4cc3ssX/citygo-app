@@ -48,6 +48,7 @@ export interface ITransitSteps {
 
 export interface ITransitStop {
   id: string;
+  color: string;
   stops: number[];
 }
 

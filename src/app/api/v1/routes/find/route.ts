@@ -1,13 +1,13 @@
 import { findRoutesRequestSchema } from "@/helpers/validations/routes";
 import clientPromise from "@/lib/db";
 import { Routes } from "@/models/routes";
-import { IResponse, ResponseError } from "@/typescript/response";
+import { IResponse, ResponseError, ResponseFormat } from "@/typescript/response";
 import { convertZodErrorToResponseError } from "@/utils/validations";
 import { point } from "@turf/helpers";
 import { ReasonPhrases } from "http-status-codes";
 import { NextRequest } from "next/server";
 import { ZodIssue } from "zod";
-import { DistanceUnits } from "@/helpers/validations/stops";
+import { DistanceUnits } from "@/helpers/validations";
 import { Stops } from "@/models/stops";
 import { RouteModelHelper } from "@/helpers/models/routes";
 import { isEmpty } from "lodash-es";
@@ -58,7 +58,9 @@ export async function POST(request: NextRequest) {
   const body = (await request.json()) as IFindRoutes;
   const searchParams = request.nextUrl.searchParams;
   const count = Number(searchParams.get("count") || 10);
-  const format = searchParams.get("format");
+  // response format
+  const format =
+    (searchParams.get("format") as ResponseFormat) || ResponseFormat.JSON;
 
   // validate request
   const result = findRoutesRequestSchema.safeParse({
