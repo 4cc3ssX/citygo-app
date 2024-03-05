@@ -45,7 +45,7 @@ export class Routes {
     const routes = await this._collection
       .find(filters)
       .project(this._defaultProjection)
-      .sort({ id: 1 })
+      .sort({ route_id: 1 }, "asc")
       .toArray();
 
     return routes as IRoute[];

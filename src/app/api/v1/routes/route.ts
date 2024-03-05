@@ -57,9 +57,6 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  // search queries
-  const id = searchParams.get("id") || "";
-
   // response format
   const format =
     (searchParams.get("format") as ResponseFormat) || ResponseFormat.JSON;
@@ -68,7 +65,34 @@ export async function GET(request: NextRequest) {
     const client = await clientPromise;
 
     const routeModel = new Routes(client);
-    const routes = await routeModel.findAllRoutes({ route_id: id });
+    const routes = await routeModel.findAllRoutes({});
+
+    routes.sort(({ route_id: routeIdA }, { route_id: routeIdB }) => {
+      const a = routeIdA.split("-")[0];
+      const b = routeIdB.split("-")[0];
+
+      // Extract number and optional character using regular expression
+      const regex = /^(\d+)([A-Z])?$/;
+      const matchA = a.match(regex);
+      const matchB = b.match(regex);
+
+      // If both elements don't have numbers, sort alphabetically
+      if (!matchA && !matchB) {
+        return routeIdA.localeCompare(routeIdB);
+      }
+
+      // Extract and compare numbers, then compare characters (if any)
+      const numA = matchA ? Number(matchA[1]) : 0;
+      const numB = matchB ? Number(matchB[1]) : 0;
+      const charA = matchA?.[2] || "";
+      const charB = matchB?.[2] || "";
+
+      if (numA !== numB) {
+        return numA - numB;
+      } else {
+        return charA.localeCompare(charB);
+      }
+    });
 
     if (format === ResponseFormat.GEOJSON) {
       const routesFeatures: Feature<LineString>[] = routes.map(

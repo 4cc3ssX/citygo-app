@@ -68,7 +68,7 @@ export class RouteModelHelper {
    * @return {ITransitRoute[]} An array of transit routes.
    */
   public findTransitRoutes({
-    count = 10,
+    count = 5,
   }: ITransitRouteOptions): ITransitRoute[] {
     const transitRoutes: ITransitRoute[] = [];
     const fromTransferPoint = this.transferPoints.find(
@@ -437,24 +437,26 @@ export class RouteModelHelper {
       }
     }
 
-    return transitRoutes
-      .sort((prev, next) => {
-        const prevJoinCount = prev.id.split("-");
-        const nextJoinCount = next.id.split("-");
+    return transitRoutes;
+  }
 
-        const prevDistance = prev.distance;
-        const nextDistance = next.distance;
-
-        // prioritize the routes with less join count
-        if (
-          prevJoinCount.length < nextJoinCount.length &&
-          prevDistance > nextDistance
-        ) {
-          return -1;
-        }
-
+  public static sortTransitRoutes(routes: ITransitRoute[]): ITransitRoute[] {
+    return routes.sort((prev, next) => {
+      // prioritize the routes with fewer transit steps
+      if (prev.transitSteps.length < next.transitSteps.length) {
+        return -1;
+      } else if (prev.transitSteps.length > next.transitSteps.length) {
         return 1;
-      })
-      .slice(0, count);
+      } else {
+        // if transit steps are equal, prioritize by distance
+        if (prev.distance < next.distance) {
+          return -1;
+        } else if (prev.distance > next.distance) {
+          return 1;
+        } else {
+          return 0;
+        }
+      }
+    });
   }
 }

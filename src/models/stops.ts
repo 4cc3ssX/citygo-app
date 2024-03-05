@@ -45,7 +45,6 @@ export class Stops {
     const stops = await this._collection
       .find(filters)
       .project(this._defaultProjection)
-      .sort({ id: 1 })
       .toArray();
 
     return stops as IStop[];
