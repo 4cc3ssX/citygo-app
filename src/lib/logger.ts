@@ -35,20 +35,17 @@ const customFormat = format.printf((info) => {
 
 const logger = createLogger(logConfiguration);
 
-// If not in production, also log to the console
-if (process.env.NODE_ENV !== "production") {
-  logger.add(
-    new transports.Console({
-      format: format.combine(
-        format.splat(),
-        format.colorize(),
-        format.timestamp(),
-        format.errors({ stack: true }),
-        format.label({ label: "LOGGER" }),
-        customFormat
-      ),
-    })
-  );
-}
+logger.add(
+  new transports.Console({
+    format: format.combine(
+      format.splat(),
+      format.colorize(),
+      format.timestamp(),
+      format.errors({ stack: true }),
+      format.label({ label: "LOGGER" }),
+      customFormat
+    ),
+  })
+);
 
 export default logger;
