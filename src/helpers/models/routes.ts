@@ -13,10 +13,6 @@ import { DistanceUnits } from "../validations";
 import { ICoordinates } from "@/typescript/models";
 import { intersection, omit } from "lodash-es";
 
-export interface ITransitRouteOptions {
-  count: number;
-}
-
 export class RouteModelHelper {
   private possibleTransitRoutes: IRoute[] = [];
   private transferPoints: ITransferPoint[] = [];
@@ -67,10 +63,9 @@ export class RouteModelHelper {
    * @param {number} options.count - The maximum number of transit routes to return.
    * @return {ITransitRoute[]} An array of transit routes.
    */
-  public findTransitRoutes({
-    count = 5,
-  }: ITransitRouteOptions): ITransitRoute[] {
+  public findTransitRoutes(): ITransitRoute[] {
     const transitRoutes: ITransitRoute[] = [];
+
     const fromTransferPoint = this.transferPoints.find(
       (ftp) => ftp.stop === this.from
     );
@@ -153,13 +148,19 @@ export class RouteModelHelper {
         if (commonStops.length > 0) {
           const routeId = `${fromRoute.route_id} - ${toRoute.route_id}`;
 
+          // check previous 2 transits with the same route
+          if (
+            transitRoutes.some(
+              (tr) =>
+                tr.route.length === 2 &&
+                tr.id.split(" - ")[0].includes(fromRoute.route_id)
+            )
+          ) {
+            continue;
+          }
+
           // check previous existing transits
           if (!transitRoutes.some((tr) => tr.id === routeId)) {
-            // check if we have enough routes
-            if (transitRoutes.length === count) {
-              break;
-            }
-
             const commonStop = this.stops.find((stop) => {
               const commonStop = commonStops.at(isRequiredToReverse ? -1 : 0);
 
@@ -176,16 +177,12 @@ export class RouteModelHelper {
               );
             }) as IStop;
 
-            // if commonStop is already visited by direct route, skip the loop
-            if (
-              Array.from(visitedRoute).some((vr) =>
-                vr.stops.includes(commonStop.id)
-              )
-            ) {
+            // check visted route
+            if (visitedRoute.has(fromRoute)) {
               continue;
             }
 
-            // push found route to visitedRoute
+            // add route if not visited
             if (!visitedRoute.has(toRoute)) {
               visitedRoute.add(toRoute);
             }

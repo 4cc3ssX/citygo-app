@@ -61,7 +61,7 @@ import { IFindRoutes } from "@/typescript/request";
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as IFindRoutes;
   const searchParams = request.nextUrl.searchParams;
-  const count = Number(searchParams.get("count") || 5);
+  const count = Number(searchParams.get("count") || 10);
   // response format
   const format =
     (searchParams.get("format") as ResponseFormat) || ResponseFormat.JSON;
@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
           distanceUnit
         );
 
-        const resultRoutes = routeModelHelper.findTransitRoutes({ count });
+        const resultRoutes = routeModelHelper.findTransitRoutes();
 
         for (const result of resultRoutes) {
           // find the same id in possibleRoutes and replace with result if result has shorter distance
