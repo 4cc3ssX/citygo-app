@@ -14,23 +14,45 @@ import { ICoordinates } from "@/typescript/models";
 import { intersection, omit } from "lodash-es";
 
 export class RouteModelHelper {
-  private possibleTransitRoutes: IRoute[] = [];
+  private from!: number;
+  private to!: number;
+  private startPoint!: Feature<Point, IStop>;
+  private endPoint!: Feature<Point, IStop>;
+  private visitedRoute = new Set<IRoute>();
+
+  public _transitRoutes: ITransitRoute[] = [];
   private transferPoints: ITransferPoint[] = [];
 
   constructor(
     private stops: IStop[],
     private routes: IRoute[],
-    private from: number,
-    private to: number,
-    private startPoint: Feature<Point, IStop>,
-    private endPoint: Feature<Point, IStop>,
+    private count: number,
     private distanceUnit: DistanceUnits
   ) {
     this.transferPoints = this.findTransferPoints();
   }
 
-  get possibleTransits() {
-    return this.possibleTransitRoutes;
+  get transitRoutes() {
+    return RouteModelHelper.sortTransitRoutes(this._transitRoutes).slice(
+      0,
+      this.count
+    );
+  }
+
+  public updateFromRoute(from: number) {
+    this.from = from;
+  }
+
+  public updateToRoute(to: number) {
+    this.to = to;
+  }
+
+  public updateStartPoint(startPoint: Feature<Point, IStop>) {
+    this.startPoint = startPoint;
+  }
+
+  public updateEndPoint(endPoint: Feature<Point, IStop>) {
+    this.endPoint = endPoint;
   }
 
   /**
@@ -38,7 +60,7 @@ export class RouteModelHelper {
    *
    * @return {ITransferPoint[]} An array of transfer points.
    */
-  public findTransferPoints(): ITransferPoint[] {
+  private findTransferPoints(): ITransferPoint[] {
     const transferPoints: ITransferPoint[] = [];
     const routesByStop: { [stop: number]: IRoute[] } = {};
 
@@ -63,8 +85,11 @@ export class RouteModelHelper {
    * @param {number} options.count - The maximum number of transit routes to return.
    * @return {ITransitRoute[]} An array of transit routes.
    */
-  public findTransitRoutes(): ITransitRoute[] {
-    const transitRoutes: ITransitRoute[] = [];
+  public findTransitRoutes(): void {
+    if (!this.from || !this.to || !this.startPoint || !this.endPoint) {
+      // Invalid route parameters
+      return;
+    }
 
     const fromTransferPoint = this.transferPoints.find(
       (ftp) => ftp.stop === this.from
@@ -76,16 +101,14 @@ export class RouteModelHelper {
 
     if (!fromTransferPoint || !toTransferPoint) {
       // stop cannot be found
-      return [];
+      return;
     }
 
-    const visitedRoute = new Set<IRoute>();
+    const isRequiredToReverse = StopModelHelper.isRequiredToReverseStops(
+      this.from
+    );
 
-    for (const fromRoute of fromTransferPoint.routes) {
-      const isRequiredToReverse = StopModelHelper.isRequiredToReverseStops(
-        this.from
-      );
-
+    fromLoop: for (const fromRoute of fromTransferPoint.routes) {
       const fromRouteLineString = createLineString(
         fromRoute.coordinates,
         fromRoute.route_id
@@ -94,9 +117,15 @@ export class RouteModelHelper {
       // direct route check
       if (intersection(fromRoute.stops, [this.from, this.to]).length === 2) {
         // push found route to visitedRoute
-        if (!visitedRoute.has(fromRoute)) {
-          visitedRoute.add(fromRoute);
+        if (!this.visitedRoute.has(fromRoute)) {
+          this.visitedRoute.add(fromRoute);
         }
+
+        const routeStopsSlice = StopModelHelper.findInBetweenStops(
+          this.from,
+          this.to,
+          fromRoute.stops
+        );
 
         const routeLineSlice = createLineSlice(
           this.startPoint,
@@ -107,31 +136,37 @@ export class RouteModelHelper {
         const routeLength = length(routeLineSlice, {
           units: this.distanceUnit,
         });
-        transitRoutes.push({
+
+        this._transitRoutes.push({
           id: fromRoute.route_id,
-          route: [fromRoute],
+          routes: [
+            {
+              ...fromRoute,
+              stops: routeStopsSlice,
+              coordinates:
+                routeLineSlice.geometry.coordinates.map<ICoordinates>(
+                  ([lng, lat]) => ({
+                    lng,
+                    lat,
+                  })
+                ),
+            },
+          ],
           transitSteps: [
             {
               type: TransitType.TRANSIT,
-              step: {
-                id: fromRoute.route_id,
-                color: fromRoute.color,
-                stops: StopModelHelper.findInBetweenStops(
-                  this.from,
-                  this.to,
-                  fromRoute.stops
-                ),
-              },
+              step: omit(fromRoute, ["stops", "coordinates"]),
+              distance: routeLength,
             },
           ],
-          coordinates: routeLineSlice.geometry.coordinates.map<ICoordinates>(
-            ([lng, lat]) => ({
-              lng,
-              lat,
-            })
-          ),
+
           distance: routeLength,
         });
+      }
+
+      // break the loop if the maximum number of routes is reached
+      if (this._transitRoutes.length >= this.count) {
+        return;
       }
 
       for (const toRoute of toTransferPoint.routes) {
@@ -148,45 +183,29 @@ export class RouteModelHelper {
         if (commonStops.length > 0) {
           const routeId = `${fromRoute.route_id} - ${toRoute.route_id}`;
 
-          // check previous 2 transits with the same route
-          if (
-            transitRoutes.some(
-              (tr) =>
-                tr.route.length === 2 &&
-                tr.id.split(" - ")[0].includes(fromRoute.route_id)
-            )
-          ) {
-            continue;
+          // check previous existing transits
+          if (this.visitedRoute.has(fromRoute)) {
+            continue fromLoop;
           }
 
           // check previous existing transits
-          if (!transitRoutes.some((tr) => tr.id === routeId)) {
+          if (!this._transitRoutes.some((tr) => tr.id === routeId)) {
             const commonStop = this.stops.find((stop) => {
-              const commonStop = commonStops.at(isRequiredToReverse ? -1 : 0);
+              const commonStopId = commonStops.at(isRequiredToReverse ? -1 : 0);
 
-              // check if common stop is equal with the dest top
-              if (commonStop !== this.to) {
-                return stop.id === commonStop;
+              // check if common stop is equal with the dest stop
+              if (commonStopId !== this.to) {
+                return stop.id === commonStopId;
               }
 
-              return (
-                stop.id ===
-                commonStops.at(
-                  isRequiredToReverse ? -1 : Math.floor(commonStops.length / 3)
-                )
-              );
+              return stop.id === commonStops.at(isRequiredToReverse ? -1 : 0);
             }) as IStop;
 
-            // check visted route
-            if (visitedRoute.has(fromRoute)) {
-              continue;
+            if (!this.visitedRoute.has(fromRoute)) {
+              this.visitedRoute.add(fromRoute);
             }
 
-            // add route if not visited
-            if (!visitedRoute.has(toRoute)) {
-              visitedRoute.add(toRoute);
-            }
-
+            // find in-between stops
             const fromStopRouteSlice = StopModelHelper.findInBetweenStops(
               this.from,
               commonStop.id,
@@ -199,7 +218,7 @@ export class RouteModelHelper {
               toRoute.stops
             );
 
-            // geojson
+            // commonStop point to make slice line string
             const commonStopPoint = point([commonStop.lng, commonStop.lat]);
 
             const fromRouteLineSlice = createLineSlice(
@@ -216,6 +235,7 @@ export class RouteModelHelper {
               routeId
             );
 
+            // calculate sliced line string length
             const fromRouteLength = length(fromRouteLineSlice, {
               units: this.distanceUnit,
             });
@@ -225,85 +245,91 @@ export class RouteModelHelper {
             });
 
             // push to array
-            transitRoutes.push({
+            this._transitRoutes.push({
               id: routeId,
-              route: [
-                omit(fromRoute, ["stops", "coordinates"]),
-                omit(toRoute, ["stops", "coordinates"]),
+              routes: [
+                {
+                  ...fromRoute,
+                  stops: fromStopRouteSlice,
+                  coordinates: fromRouteLineSlice.geometry.coordinates.map(
+                    ([lng, lat]) => ({
+                      lng,
+                      lat,
+                    })
+                  ),
+                },
+                {
+                  ...toRoute,
+                  stops: toStopRouteSlice,
+                  coordinates: toRouteLineSlice.geometry.coordinates.map(
+                    ([lng, lat]) => ({
+                      lng,
+                      lat,
+                    })
+                  ),
+                },
               ],
               transitSteps: [
                 {
                   type: TransitType.TRANSIT,
-                  step: {
-                    id: fromRoute.route_id,
-                    color: fromRoute.color,
-                    stops: fromStopRouteSlice,
-                  },
+                  step: omit(fromRoute, ["stops", "coordinates"]),
+                  distance: fromRouteLength,
                 },
                 {
                   type: TransitType.TRANSIT,
-                  step: {
-                    id: toRoute.route_id,
-                    color: toRoute.color,
-                    stops: toStopRouteSlice,
-                  },
+                  step: omit(toRoute, ["stops", "coordinates"]),
+                  distance: toRouteLength,
                 },
               ],
-              coordinates: [fromRouteLineSlice, toRouteLineSlice]
-                .find((rf) => rf.id === routeId)
-                ?.geometry.coordinates.map(([lng, lat]) => ({
-                  lng,
-                  lat,
-                })) as ICoordinates[],
+
               distance: fromRouteLength + toRouteLength,
             });
           }
         }
+      }
+    }
+
+    if (this._transitRoutes.length >= this.count) {
+      return;
+    }
+
+    for (const fromRoute of fromTransferPoint.routes) {
+      const fromRouteLineString = createLineString(
+        fromRoute.coordinates,
+        fromRoute.route_id
+      );
+
+      for (const toRoute of toTransferPoint.routes) {
+        const toRouteLineString = createLineString(
+          toRoute.coordinates,
+          toRoute.route_id
+        );
 
         // 3 transits
-        for (const joinRoute of this.routes) {
+        joinRoute: for (const joinRoute of this.routes) {
           // skip if join route is same as from and to route
           if (
             joinRoute.route_id === fromRoute.route_id ||
             joinRoute.route_id === toRoute.route_id ||
-            visitedRoute.has(joinRoute)
+            this.visitedRoute.has(joinRoute)
           ) {
             continue;
           }
 
-          const joinStartCommonStops: number[] = [];
-          const joinEndCommonStops: number[] = [];
-
-          const fromJoinStops = fromRoute.stops.filter((fsid) =>
+          // check if can join
+          const joinStartCommonStops = fromRoute.stops.filter((fsid) =>
             joinRoute.stops.includes(fsid)
           );
-          const toJoinStops = toRoute.stops.filter((tsid) =>
+          const joinEndCommonStops = toRoute.stops.filter((tsid) =>
             joinRoute.stops.includes(tsid)
           );
 
-          // check if can join
-          const canJoin = fromJoinStops.length > 0 && toJoinStops.length > 0;
-
-          if (
-            canJoin &&
-            !joinStartCommonStops.some((jsid) => fromJoinStops.includes(jsid))
-          ) {
-            joinStartCommonStops.push(...fromJoinStops);
-          }
-
-          if (
-            canJoin &&
-            !joinEndCommonStops.some((jsid) => toJoinStops.includes(jsid))
-          ) {
-            joinEndCommonStops.push(...toJoinStops);
-          }
-
-          // check if there is common stop
+          // check if there is common stops
           if (
             joinStartCommonStops.length === 0 ||
             joinEndCommonStops.length === 0
           ) {
-            continue;
+            continue joinRoute;
           }
 
           const routeId = `${fromRoute.route_id} - ${joinRoute.route_id} - ${toRoute.route_id}`;
@@ -385,56 +411,62 @@ export class RouteModelHelper {
           });
 
           // push to array
-          transitRoutes.push({
+          this._transitRoutes.push({
             id: routeId,
-            route: [
-              omit(fromRoute, ["stops", "coordinates"]),
-              omit(joinRoute, ["stops", "coordinates"]),
-              omit(toRoute, ["stops", "coordinates"]),
+            routes: [
+              {
+                ...fromRoute,
+                stops: fromStopRouteSlice,
+                coordinates: fromRouteLineSlice.geometry.coordinates.map(
+                  ([lng, lat]) => ({
+                    lng,
+                    lat,
+                  })
+                ),
+              },
+              {
+                ...joinRoute,
+                stops: joinStopRouteSlice,
+                coordinates: joinRouteLineSlice.geometry.coordinates.map(
+                  ([lng, lat]) => ({
+                    lng,
+                    lat,
+                  })
+                ),
+              },
+              {
+                ...toRoute,
+                stops: toStopRouteSlice,
+                coordinates: toRouteLineSlice.geometry.coordinates.map(
+                  ([lng, lat]) => ({
+                    lng,
+                    lat,
+                  })
+                ),
+              },
             ],
             transitSteps: [
               {
                 type: TransitType.TRANSIT,
-                step: {
-                  id: fromRoute.route_id,
-                  color: fromRoute.color,
-                  stops: fromStopRouteSlice,
-                },
+                step: omit(fromRoute, ["stops", "coordinates"]),
+                distance: fromRouteLength,
               },
               {
                 type: TransitType.TRANSIT,
-                step: {
-                  id: joinRoute.route_id,
-                  color: joinRoute.color,
-                  stops: joinStopRouteSlice,
-                },
+                step: omit(joinRoute, ["stops", "coordinates"]),
+                distance: joinRouteLength,
               },
               {
                 type: TransitType.TRANSIT,
-                step: {
-                  id: toRoute.route_id,
-                  color: toRoute.color,
-                  stops: toStopRouteSlice,
-                },
+                step: omit(toRoute, ["stops", "coordinates"]),
+                distance: toRouteLength,
               },
             ],
-            coordinates: [
-              fromRouteLineSlice,
-              joinRouteLineSlice,
-              toRouteLineSlice,
-            ]
-              .find((rf) => rf.id === routeId)
-              ?.geometry.coordinates.map(([lng, lat]) => ({
-                lng,
-                lat,
-              })) as ICoordinates[],
             distance: fromRouteLength + joinRouteLength + toRouteLength,
           });
         }
       }
     }
-
-    return transitRoutes;
   }
 
   public static sortTransitRoutes(routes: ITransitRoute[]): ITransitRoute[] {

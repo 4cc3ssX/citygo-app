@@ -15,7 +15,6 @@ import { DistanceUnits } from "@/helpers/validations";
 import { Stops } from "@/models/stops";
 import { RouteModelHelper } from "@/helpers/models/routes";
 import { isEmpty } from "lodash-es";
-import { ITransitRoute } from "@/typescript/models/routes";
 import { IFindRoutes } from "@/typescript/request";
 
 /**
@@ -61,7 +60,7 @@ import { IFindRoutes } from "@/typescript/request";
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as IFindRoutes;
   const searchParams = request.nextUrl.searchParams;
-  const count = Number(searchParams.get("count") || 10);
+  const count = Number(searchParams.get("count") || 5);
   // response format
   const format =
     (searchParams.get("format") as ResponseFormat) || ResponseFormat.JSON;
@@ -154,10 +153,19 @@ export async function POST(request: NextRequest) {
     // Fetch all routes
     const allRoutes = await routesModel.findAllRoutes({});
 
-    let possibleRoutes: ITransitRoute[] = [];
+    const routeModelHelper = new RouteModelHelper(
+      stops,
+      allRoutes,
+      count,
+      distanceUnit
+    );
 
     for (const fromStop of fromStops) {
       for (const toStop of toStops) {
+        // update from and to
+        routeModelHelper.updateFromRoute(fromStop.id);
+        routeModelHelper.updateToRoute(toStop.id);
+
         // start - end points
         const startPoint = point([fromStop.lng, fromStop.lat], fromStop, {
           id: fromStop.id,
@@ -165,44 +173,20 @@ export async function POST(request: NextRequest) {
         const endPoint = point([toStop.lng, toStop.lat], toStop, {
           id: toStop.id,
         });
+        routeModelHelper.updateStartPoint(startPoint);
+        routeModelHelper.updateEndPoint(endPoint);
 
-        const routeModelHelper = new RouteModelHelper(
-          stops,
-          allRoutes,
-          fromStop.id,
-          toStop.id,
-          startPoint,
-          endPoint,
-          distanceUnit
-        );
-
-        const resultRoutes = routeModelHelper.findTransitRoutes();
-
-        for (const result of resultRoutes) {
-          // find the same id in possibleRoutes and replace with result if result has shorter distance
-          const index = possibleRoutes.findIndex(
-            (route) => route.id === result.id
-          );
-          if (index !== -1) {
-            if (possibleRoutes[index].distance > result.distance) {
-              possibleRoutes[index] = result;
-            }
-          } else {
-            possibleRoutes.push(result);
-          }
-        }
+        // find possible routes
+        routeModelHelper.findTransitRoutes();
       }
     }
 
-    possibleRoutes = RouteModelHelper.sortTransitRoutes(possibleRoutes).slice(
-      0,
-      count
-    );
+    const possibleTransitRoutes = routeModelHelper.transitRoutes;
 
     return Response.json(
       {
         status: "ok",
-        data: possibleRoutes,
+        data: possibleTransitRoutes,
       } as IResponse,
       {
         status: 200,
