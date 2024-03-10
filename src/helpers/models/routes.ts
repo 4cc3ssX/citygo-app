@@ -26,6 +26,7 @@ export class RouteModelHelper {
   constructor(
     private stops: IStop[],
     private routes: IRoute[],
+    private userPosition: ICoordinates | null,
     private count: number,
     private distanceUnit: DistanceUnits
   ) {

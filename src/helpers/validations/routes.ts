@@ -19,8 +19,13 @@ export const findRoutesRequestSchema = z.object({
     road: z.string({ required_error: '"to.road" is required' }),
     township: z.string({ required_error: '"to.township" is required' }),
   }),
+  user_pos: z
+    .object({
+      lat: z.string({ required_error: '"user_pos.lat" is required' }),
+      lng: z.string({ required_error: '"user_pos.lng" is required' }),
+    })
+    .optional(),
   count: z.number().min(5).max(10).optional(),
-  format: z.nativeEnum(ResponseFormat).optional(),
 });
 
 export const routeIdSchema = z.object({

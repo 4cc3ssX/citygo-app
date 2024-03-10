@@ -1,11 +1,7 @@
 import { findRoutesRequestSchema } from "@/helpers/validations/routes";
 import clientPromise from "@/lib/db";
 import { Routes } from "@/models/routes";
-import {
-  IResponse,
-  ResponseError,
-  ResponseFormat,
-} from "@/typescript/response";
+import { IResponse, ResponseError } from "@/typescript/response";
 import { convertZodErrorToResponseError } from "@/utils/validations";
 import { point } from "@turf/helpers";
 import { ReasonPhrases } from "http-status-codes";
@@ -53,6 +49,13 @@ import { IFindRoutes } from "@/typescript/request";
  *                   type: string
  *                 township:
  *                   type: string
+ *             user_pos:
+ *               type: object
+ *               properties:
+ *                 lat:
+ *                   type: string
+ *                 lng:
+ *                   type: string
  *     responses:
  *       200:
  *         description: Successful response
@@ -61,15 +64,11 @@ export async function POST(request: NextRequest) {
   const body = (await request.json()) as IFindRoutes;
   const searchParams = request.nextUrl.searchParams;
   const count = Number(searchParams.get("count") || 5);
-  // response format
-  const format =
-    (searchParams.get("format") as ResponseFormat) || ResponseFormat.JSON;
 
   // validate request
   const result = findRoutesRequestSchema.safeParse({
     ...body,
     count,
-    format,
   });
 
   if (!result.success) {
@@ -88,9 +87,10 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // search queries
+  // data
   const from = body.from;
   const to = body.to;
+  const userPosition = body.user_position || null;
   const distanceUnit =
     (searchParams.get("distance_unit") as DistanceUnits) ||
     DistanceUnits.KILOMETERS;
@@ -156,6 +156,7 @@ export async function POST(request: NextRequest) {
     const routeModelHelper = new RouteModelHelper(
       stops,
       allRoutes,
+      userPosition,
       count,
       distanceUnit
     );
