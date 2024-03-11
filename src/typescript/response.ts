@@ -26,7 +26,7 @@ export enum ResponseFormat {
 export interface Pagination {
   page: number;
   size: number;
-  nextPage: number;
-  prevPage: number;
+  nextPage: number | null;
+  prevPage: number | null;
   total: number;
 }
