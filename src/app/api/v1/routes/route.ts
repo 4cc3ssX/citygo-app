@@ -20,7 +20,7 @@ import { convertZodErrorToResponseError } from "@/utils/validations";
 import logger from "@/lib/logger";
 import { createLineString } from "@/helpers/models";
 
-// export const revalidate = 3600;
+export const revalidate = 60 * 60; // 1 hour
 
 /**
  * @swagger

@@ -21,7 +21,7 @@ export class RouteModelHelper {
   private visitedRoute = new Set<IRoute>();
 
   public _transitRoutes: ITransitRoute[] = [];
-  private transferPoints: ITransferPoint[] = [];
+  private _transferPoints: ITransferPoint[] = [];
 
   constructor(
     private stops: IStop[],
@@ -30,7 +30,7 @@ export class RouteModelHelper {
     private count: number,
     private distanceUnit: DistanceUnits
   ) {
-    this.transferPoints = this.findTransferPoints();
+    this.findTransferPoints();
   }
 
   get transitRoutes() {
@@ -59,32 +59,20 @@ export class RouteModelHelper {
   /**
    * Finds and returns an array of transfer points.
    *
-   * @return {ITransferPoint[]} An array of transfer points.
    */
-  private findTransferPoints(): ITransferPoint[] {
-    const transferPoints: ITransferPoint[] = [];
-    const routesByStop: { [stop: number]: IRoute[] } = {};
-
-    for (const route of this.routes) {
-      for (const stop of route.stops) {
-        routesByStop[stop] = routesByStop[stop] || [];
-        routesByStop[stop].push(route);
-
-        if (routesByStop[stop].length > 1) {
-          transferPoints.push({ stop, routes: routesByStop[stop] });
-        }
-      }
+  private findTransferPoints() {
+    for (const stop of this.stops) {
+      const routes = this.routes.filter((route) =>
+        route.stops.includes(stop.id)
+      );
+      this._transferPoints.push({ stop: stop.id, routes });
     }
-
-    return transferPoints;
   }
 
   /**
-   * Finds transit routes based on the given options.
+   * Finds transit routes between two stops.
    *
-   * @param {ITransitRouteOptions} options - The options for finding transit routes.
-   * @param {number} options.count - The maximum number of transit routes to return.
-   * @return {ITransitRoute[]} An array of transit routes.
+   * @return {void}
    */
   public findTransitRoutes(): void {
     if (!this.from || !this.to || !this.startPoint || !this.endPoint) {
@@ -92,11 +80,11 @@ export class RouteModelHelper {
       return;
     }
 
-    const fromTransferPoint = this.transferPoints.find(
+    const fromTransferPoint = this._transferPoints.find(
       (ftp) => ftp.stop === this.from
     );
 
-    const toTransferPoint = this.transferPoints.find(
+    const toTransferPoint = this._transferPoints.find(
       (ttp) => ttp.stop === this.to
     );
 
@@ -170,7 +158,7 @@ export class RouteModelHelper {
         return;
       }
 
-      for (const toRoute of toTransferPoint.routes) {
+      toLoop: for (const toRoute of toTransferPoint.routes) {
         const toRouteLineString = createLineString(
           toRoute.coordinates,
           toRoute.route_id
@@ -187,6 +175,11 @@ export class RouteModelHelper {
           // check previous existing transits
           if (this.visitedRoute.has(fromRoute)) {
             continue fromLoop;
+          }
+
+          // check toRoute is visited by fromRoute
+          if (this.visitedRoute.has(toRoute)) {
+            continue toLoop;
           }
 
           // check previous existing transits
