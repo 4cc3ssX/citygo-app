@@ -48,7 +48,7 @@ export class Stops {
    */
   async searchStops(
     stop: ISearchStops,
-    pagination: Omit<Partial<Pagination>, "total">
+    { page, size }: Omit<Partial<Pagination>, "total" | "nextPage" | "prevPage">
   ): Promise<IStop[]> {
     const filters: Filter<IStop> = { $and: [] };
 
@@ -74,9 +74,9 @@ export class Stops {
       .project(this._defaultProjection)
       .sort({ "township.en": 1 }, "asc");
 
-    if (pagination.page && pagination.size) {
-      stops.skip(pagination.size * (pagination.page - 1));
-      stops.limit(pagination.size);
+    if (page && size) {
+      stops.skip(size * (page - 1));
+      stops.limit(size);
     }
 
     return (await stops.toArray()) as IStop[];

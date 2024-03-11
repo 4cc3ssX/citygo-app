@@ -105,6 +105,7 @@ export async function GET(
         {
           status: "ok",
           data: stopCollection,
+          metadata: null,
         } as IResponse<FeatureCollection<Point>>,
         {
           status: 200,

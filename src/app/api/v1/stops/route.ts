@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
   // pagination
   const page = Number(searchParams.get("page")) || undefined;
-  const size = Number(searchParams.get("size")) || undefined;
+  const size = Number(searchParams.get("size") || 10);
 
   // validate request
   const result = stopsRequestSchema.safeParse({
@@ -97,7 +97,11 @@ export async function GET(request: NextRequest) {
       { page, size }
     );
 
-    const stopCount = await stopModel.countStops({ name, road, township });
+    let stopCount = 0;
+    if (page && size) {
+      // to avoid unnecessary db call
+      stopCount = await stopModel.countStops({ name, road, township });
+    }
 
     if (format === ResponseFormat.GEOJSON) {
       const stopFeatures: Feature<Point>[] = [];
@@ -116,7 +120,13 @@ export async function GET(request: NextRequest) {
           data: stopCollection,
           metadata:
             page && size
-              ? { page, size, total: Math.ceil(stopCount / size) }
+              ? {
+                  page,
+                  size,
+                  nextPage: page + 1,
+                  prevPage: page - 1,
+                  total: Math.ceil(stopCount / size),
+                }
               : undefined,
         } as IResponse<FeatureCollection<Point>, Pagination>,
         {
@@ -131,7 +141,13 @@ export async function GET(request: NextRequest) {
         data: stops,
         metadata:
           page && size
-            ? { page, size, total: Math.ceil(stopCount / size) }
+            ? {
+                page,
+                size,
+                nextPage: page + 1,
+                prevPage: page - 1,
+                total: Math.ceil(stopCount / size),
+              }
             : undefined,
       } as IResponse<IStop[], Pagination>,
       {

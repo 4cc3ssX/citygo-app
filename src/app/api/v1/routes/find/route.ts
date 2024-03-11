@@ -103,9 +103,9 @@ export async function POST(request: NextRequest) {
     const routesModel = new Routes(client);
 
     // Fetch all stops
-    const stops = await stopsModel.searchStops({});
-    const fromStops = await stopsModel.searchStops(from);
-    const toStops = await stopsModel.searchStops(to);
+    const stops = await stopsModel.searchStops({}, {});
+    const fromStops = await stopsModel.searchStops(from, {});
+    const toStops = await stopsModel.searchStops(to, {});
 
     if (
       isEmpty(fromStops) ||

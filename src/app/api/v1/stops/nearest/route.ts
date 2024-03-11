@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
     const client = await clientPromise;
 
     const stopModel = new Stops(client);
-    const stops = await stopModel.searchStops({});
+    const stops = await stopModel.searchStops({}, {});
 
     // current location
     const targetPoint = point([Number(lng), Number(lat)]);
@@ -139,6 +139,7 @@ export async function GET(request: NextRequest) {
           format === ResponseFormat.JSON
             ? nearestStops
             : nearestStopsCollection,
+        metadata: null,
       } as IResponse<IStop[] | FeatureCollection<Point>[]>,
       {
         status: 200,

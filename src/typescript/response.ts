@@ -3,7 +3,7 @@ import { StringOmit } from ".";
 
 export type ResponseStatus = "ok" | "error";
 
-export interface IResponse<D = any, M = {}> {
+export interface IResponse<D = any, M = any> {
   status: ResponseStatus;
   error?: ResponseError | null;
   errors?: ResponseErrors | null;
@@ -26,5 +26,7 @@ export enum ResponseFormat {
 export interface Pagination {
   page: number;
   size: number;
+  nextPage: number;
+  prevPage: number;
   total: number;
 }
