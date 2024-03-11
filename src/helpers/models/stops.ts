@@ -32,7 +32,7 @@ export class StopModelHelper {
 
     if (startIndex === -1 || endIndex === -1) {
       // stop not found
-      return betweenStops;
+      return [];
     }
 
     if (startIndex > endIndex) {

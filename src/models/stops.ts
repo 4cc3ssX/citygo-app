@@ -1,6 +1,7 @@
 import logger from "@/lib/logger";
 import { ILogger } from "@/typescript/logger";
 import { IStop, ISearchStops } from "@/typescript/models/stops";
+import { Pagination } from "@/typescript/response";
 import { Collection, Db, Document, Filter, MongoClient } from "mongodb";
 
 export class Stops {
@@ -16,13 +17,39 @@ export class Stops {
     this._collection = this._db.collection<IStop>("stops");
   }
 
+  async countStops(stop: ISearchStops): Promise<number> {
+    const filters: Filter<IStop> = { $and: [] };
+
+    // loop through each property in the stop object
+    Object.entries(stop).forEach(([key, value]) => {
+      if (typeof value === "string" && value) {
+        filters.$and?.push({
+          $or: [
+            { [`${key}.en`]: new RegExp(`${value}`, "i") },
+            { [`${key}.mm`]: new RegExp(`${value}`, "i") },
+          ],
+        });
+      }
+    });
+
+    // If there are no filters, remove the $and property
+    if (filters.$and?.length === 0) {
+      delete filters.$and;
+    }
+    const count = await this._collection.countDocuments(filters);
+    return count;
+  }
+
   /**
    * Retrieves all stops based on the given search criteria.
    *
    * @param {ISearchStops} stop The search criteria for the stops.
    * @return {Promise<IStop[]>} A promise that resolves to an array of stops.
    */
-  async searchStops(stop: ISearchStops): Promise<IStop[]> {
+  async searchStops(
+    stop: ISearchStops,
+    pagination: Omit<Partial<Pagination>, "total">
+  ): Promise<IStop[]> {
     const filters: Filter<IStop> = { $and: [] };
 
     // loop through each property in the stop object
@@ -42,13 +69,17 @@ export class Stops {
       delete filters.$and;
     }
 
-    const stops = await this._collection
+    const stops = this._collection
       .find(filters)
       .project(this._defaultProjection)
-      .sort({ "township.en": 1 }, "asc")
-      .toArray();
+      .sort({ "township.en": 1 }, "asc");
 
-    return stops as IStop[];
+    if (pagination.page && pagination.size) {
+      stops.skip(pagination.size * (pagination.page - 1));
+      stops.limit(pagination.size);
+    }
+
+    return (await stops.toArray()) as IStop[];
   }
 
   /**

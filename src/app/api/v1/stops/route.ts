@@ -2,6 +2,7 @@ import clientPromise from "@/lib/db";
 import { Stops } from "@/models/stops";
 import {
   IResponse,
+  Pagination,
   ResponseError,
   ResponseFormat,
 } from "@/typescript/response";
@@ -20,7 +21,7 @@ import { convertZodErrorToResponseError } from "@/utils/validations";
 import { ZodIssue } from "zod";
 import logger from "@/lib/logger";
 
-// export const revalidate = 3600;
+export const revalidate = 60 * 60 * 24; // 1 day
 
 /**
  * @swagger
@@ -50,8 +51,16 @@ import logger from "@/lib/logger";
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
 
+  // pagination
+  const page = Number(searchParams.get("page")) || undefined;
+  const size = Number(searchParams.get("size")) || undefined;
+
   // validate request
-  const result = stopsRequestSchema.safeParse(Object.fromEntries(searchParams));
+  const result = stopsRequestSchema.safeParse({
+    ...Object.fromEntries(searchParams),
+    page,
+    size,
+  });
 
   if (!result.success) {
     const flattenErrors = result.error.flatten<ResponseError>(
@@ -83,7 +92,12 @@ export async function GET(request: NextRequest) {
     const client = await clientPromise;
 
     const stopModel = new Stops(client);
-    const stops = await stopModel.searchStops({ name, road, township });
+    const stops = await stopModel.searchStops(
+      { name, road, township },
+      { page, size }
+    );
+
+    const stopCount = await stopModel.countStops({ name, road, township });
 
     if (format === ResponseFormat.GEOJSON) {
       const stopFeatures: Feature<Point>[] = [];
@@ -100,7 +114,11 @@ export async function GET(request: NextRequest) {
         {
           status: "ok",
           data: stopCollection,
-        } as IResponse<FeatureCollection<Point>>,
+          metadata:
+            page && size
+              ? { page, size, total: Math.ceil(stopCount / size) }
+              : undefined,
+        } as IResponse<FeatureCollection<Point>, Pagination>,
         {
           status: 200,
         }
@@ -111,7 +129,11 @@ export async function GET(request: NextRequest) {
       {
         status: "ok",
         data: stops,
-      } as IResponse<IStop[]>,
+        metadata:
+          page && size
+            ? { page, size, total: Math.ceil(stopCount / size) }
+            : undefined,
+      } as IResponse<IStop[], Pagination>,
       {
         status: 200,
       }
