@@ -2,12 +2,11 @@ export class StopModelHelper {
   constructor() {}
 
   /**
-   * Determines if it is required to reverse the stops.
-   *
-   * @param {number} id - The ID of the number.
-   * @return {boolean} A boolean value indicating if it is required to reverse the stops.
+   * Determine if a stop is on the left hand side of the route.
+   * @param id 
+   * @returns 
    */
-  public static isRequiredToReverseStops(id: number): boolean {
+  public static isOnLeftHandSide(id: number): boolean {
     return id % 2 === 0;
   }
 
@@ -26,7 +25,7 @@ export class StopModelHelper {
   ): number[] {
     let betweenStops: number[] = stops;
 
-    const startIndex = stops.findLastIndex((stopId) => stopId === from);
+    const startIndex = stops.findIndex((stopId) => stopId === from);
 
     const endIndex = stops.findIndex((stopId) => stopId === to);
 

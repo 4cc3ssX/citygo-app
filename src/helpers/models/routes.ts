@@ -93,7 +93,7 @@ export class RouteModelHelper {
       return;
     }
 
-    const isRequiredToReverse = StopModelHelper.isRequiredToReverseStops(
+    const isOnLeftHandSide = StopModelHelper.isOnLeftHandSide(
       this.from
     );
 
@@ -185,14 +185,14 @@ export class RouteModelHelper {
           // check previous existing transits
           if (!this._transitRoutes.some((tr) => tr.id === routeId)) {
             const commonStop = this.stops.find((stop) => {
-              const commonStopId = commonStops.at(isRequiredToReverse ? -1 : 0);
+              const commonStopId = commonStops.at(isOnLeftHandSide ? -1 : 0);
 
               // check if common stop is equal with the dest stop
               if (commonStopId !== this.to) {
                 return stop.id === commonStopId;
               }
 
-              return stop.id === commonStops.at(isRequiredToReverse ? -1 : 0);
+              return stop.id === commonStopId;
             }) as IStop;
 
             if (!this.visitedRoute.has(fromRoute)) {
@@ -200,13 +200,13 @@ export class RouteModelHelper {
             }
 
             // find in-between stops
-            const fromStopRouteSlice = StopModelHelper.findInBetweenStops(
+            const fromInBetweenStops = StopModelHelper.findInBetweenStops(
               this.from,
               commonStop.id,
               fromRoute.stops
             );
 
-            const toStopRouteSlice = StopModelHelper.findInBetweenStops(
+            const toInBetweenStops = StopModelHelper.findInBetweenStops(
               commonStop.id,
               this.to,
               toRoute.stops
@@ -244,7 +244,7 @@ export class RouteModelHelper {
               routes: [
                 {
                   ...fromRoute,
-                  stops: fromStopRouteSlice,
+                  stops: fromInBetweenStops,
                   coordinates: fromRouteLineSlice.geometry.coordinates.map(
                     ([lng, lat]) => ({
                       lng,
@@ -254,7 +254,7 @@ export class RouteModelHelper {
                 },
                 {
                   ...toRoute,
-                  stops: toStopRouteSlice,
+                  stops: toInBetweenStops,
                   coordinates: toRouteLineSlice.geometry.coordinates.map(
                     ([lng, lat]) => ({
                       lng,
@@ -330,27 +330,27 @@ export class RouteModelHelper {
 
           const commonStartStop = this.stops.find(
             (stop) =>
-              stop.id === joinStartCommonStops.at(isRequiredToReverse ? -1 : 0)
+              stop.id === joinStartCommonStops.at(isOnLeftHandSide ? -1 : 0)
           ) as IStop;
 
           const commonEndStop = this.stops.find(
             (stop) =>
-              stop.id === joinEndCommonStops.at(isRequiredToReverse ? -1 : 0)
+              stop.id === joinEndCommonStops.at(isOnLeftHandSide ? -1 : 0)
           ) as IStop;
 
-          const fromStopRouteSlice = StopModelHelper.findInBetweenStops(
+          const fromInBetweenStops = StopModelHelper.findInBetweenStops(
             this.from,
             commonStartStop.id,
             fromRoute.stops
           );
 
-          const joinStopRouteSlice = StopModelHelper.findInBetweenStops(
+          const joinInBetweenStops = StopModelHelper.findInBetweenStops(
             commonStartStop.id,
             commonEndStop.id,
             joinRoute.stops
           );
 
-          const toStopRouteSlice = StopModelHelper.findInBetweenStops(
+          const toInBetweenStops = StopModelHelper.findInBetweenStops(
             commonEndStop.id,
             this.to,
             toRoute.stops
@@ -410,7 +410,7 @@ export class RouteModelHelper {
             routes: [
               {
                 ...fromRoute,
-                stops: fromStopRouteSlice,
+                stops: fromInBetweenStops,
                 coordinates: fromRouteLineSlice.geometry.coordinates.map(
                   ([lng, lat]) => ({
                     lng,
@@ -420,7 +420,7 @@ export class RouteModelHelper {
               },
               {
                 ...joinRoute,
-                stops: joinStopRouteSlice,
+                stops: joinInBetweenStops,
                 coordinates: joinRouteLineSlice.geometry.coordinates.map(
                   ([lng, lat]) => ({
                     lng,
@@ -430,7 +430,7 @@ export class RouteModelHelper {
               },
               {
                 ...toRoute,
-                stops: toStopRouteSlice,
+                stops: toInBetweenStops,
                 coordinates: toRouteLineSlice.geometry.coordinates.map(
                   ([lng, lat]) => ({
                     lng,
