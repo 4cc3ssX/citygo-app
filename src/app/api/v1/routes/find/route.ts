@@ -3,7 +3,6 @@ import clientPromise from "@/lib/db";
 import { Routes } from "@/models/routes";
 import { IResponse, ResponseError } from "@/typescript/response";
 import { convertZodErrorToResponseError } from "@/utils/validations";
-import { point } from "@turf/helpers";
 import { ReasonPhrases } from "http-status-codes";
 import { NextRequest } from "next/server";
 import { ZodIssue } from "zod";
@@ -137,18 +136,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // sort from and to by prefer id
-    fromStops.sort((fa, fb) => {
-      if (fa.id === from.preferId) return -1; // Place the stop with prefer id first
-      if (fb.id === from.preferId) return 1; // Place the stop with prefer id first
-      return 0; // Keep the order unchanged for other elements
-    });
-
-    toStops.sort((a, b) => {
-      if (a.id === to.preferId) return -1; // Place the stop with prefer id first
-      if (b.id === to.preferId) return 1; // Place the stop with prefer id first
-      return 0; // Keep the order unchanged for other elements
-    });
+    // sort fromStop and toStop id in asc
+    fromStops.sort((a, b) => a.id - b.id);
+    toStops.sort((a, b) => a.id - b.id);
 
     // Fetch all routes
     const allRoutes = await routesModel.findAllRoutes({});
@@ -161,26 +151,12 @@ export async function POST(request: NextRequest) {
       distanceUnit
     );
 
-    for (const fromStop of fromStops) {
-      for (const toStop of toStops) {
-        // update from and to
-        routeModelHelper.updateFromRoute(fromStop.id);
-        routeModelHelper.updateToRoute(toStop.id);
+    // update from and to
+    routeModelHelper.updateFromStops(fromStops);
+    routeModelHelper.updateToStops(toStops);
 
-        // start - end points
-        const startPoint = point([fromStop.lng, fromStop.lat], fromStop, {
-          id: fromStop.id,
-        });
-        const endPoint = point([toStop.lng, toStop.lat], toStop, {
-          id: toStop.id,
-        });
-        routeModelHelper.updateStartPoint(startPoint);
-        routeModelHelper.updateEndPoint(endPoint);
-
-        // find possible routes
-        routeModelHelper.findTransitRoutes();
-      }
-    }
+    // find possible routes
+    routeModelHelper.findTransitRoutes();
 
     const possibleTransitRoutes = routeModelHelper.transitRoutes;
 

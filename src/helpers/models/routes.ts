@@ -5,7 +5,7 @@ import {
   TransitType,
 } from "@/typescript/models/routes";
 import { StopModelHelper } from "./stops";
-import { Feature, Point, point } from "@turf/helpers";
+import { point } from "@turf/helpers";
 import { IStop } from "@/typescript/models/stops";
 import { createLineSlice, createLineString } from ".";
 import length from "@turf/length";
@@ -14,10 +14,8 @@ import { ICoordinates } from "@/typescript/models";
 import { intersection, omit } from "lodash-es";
 
 export class RouteModelHelper {
-  private from!: number;
-  private to!: number;
-  private startPoint!: Feature<Point, IStop>;
-  private endPoint!: Feature<Point, IStop>;
+  private from!: IStop[];
+  private to!: IStop[];
   private visitedRoute = new Set<IRoute>();
 
   public _transitRoutes: ITransitRoute[] = [];
@@ -34,26 +32,18 @@ export class RouteModelHelper {
   }
 
   get transitRoutes() {
-    return RouteModelHelper.sortTransitRoutes(this._transitRoutes).slice(
-      0,
-      this.count
+    const sortedTransitRoutes = RouteModelHelper.sortTransitRoutes(
+      this._transitRoutes
     );
+    return sortedTransitRoutes.slice(0, this.count);
   }
 
-  public updateFromRoute(from: number) {
+  public updateFromStops(from: IStop[]) {
     this.from = from;
   }
 
-  public updateToRoute(to: number) {
+  public updateToStops(to: IStop[]) {
     this.to = to;
-  }
-
-  public updateStartPoint(startPoint: Feature<Point, IStop>) {
-    this.startPoint = startPoint;
-  }
-
-  public updateEndPoint(endPoint: Feature<Point, IStop>) {
-    this.endPoint = endPoint;
   }
 
   /**
@@ -75,27 +65,23 @@ export class RouteModelHelper {
    * @return {void}
    */
   public findTransitRoutes(): void {
-    if (!this.from || !this.to || !this.startPoint || !this.endPoint) {
+    if (!this.from || !this.to) {
       // Invalid route parameters
       return;
     }
 
-    const fromTransferPoint = this._transferPoints.find(
-      (ftp) => ftp.stop === this.from
+    const fromTransferPoint = this._transferPoints.find((ftp) =>
+      this.from.some((f) => ftp.stop === f.id)
     );
 
-    const toTransferPoint = this._transferPoints.find(
-      (ttp) => ttp.stop === this.to
+    const toTransferPoint = this._transferPoints.find((ttp) =>
+      this.to.some((t) => ttp.stop === t.id)
     );
 
     if (!fromTransferPoint || !toTransferPoint) {
       // stop cannot be found
       return;
     }
-
-    const isOnLeftHandSide = StopModelHelper.isOnLeftHandSide(
-      this.from
-    );
 
     fromLoop: for (const fromRoute of fromTransferPoint.routes) {
       const fromRouteLineString = createLineString(
@@ -104,21 +90,45 @@ export class RouteModelHelper {
       );
 
       // direct route check
-      if (intersection(fromRoute.stops, [this.from, this.to]).length === 2) {
+      if (
+        intersection(
+          fromRoute.stops,
+          [this.from.slice(0, 1), this.to.slice(0, 1)].flat().map((s) => s.id)
+        ).length === 2
+      ) {
         // push found route to visitedRoute
         if (!this.visitedRoute.has(fromRoute)) {
           this.visitedRoute.add(fromRoute);
         }
 
-        const routeStopsSlice = StopModelHelper.findInBetweenStops(
+        const inBetweenStops = StopModelHelper.findInBetweenStops(
           this.from,
           this.to,
-          fromRoute.stops
+          fromRoute.stops.map(
+            (s) => this.stops.find((stop) => stop.id === s) as IStop
+          )
         );
 
+        const fromStop = this.stops.find(
+          (stop) => stop.id === inBetweenStops.at(-1)?.id
+        ) as IStop;
+
+        const toStop = this.stops.find(
+          (stop) => stop.id === inBetweenStops.at(-1)?.id
+        ) as IStop;
+
+        // start point
+        const startPoint = point([fromStop.lng, fromStop.lat], fromStop, {
+          id: fromStop.id,
+        });
+        // end point
+        const endPoint = point([toStop.lng, toStop.lat], toStop, {
+          id: toStop.id,
+        });
+
         const routeLineSlice = createLineSlice(
-          this.startPoint,
-          this.endPoint,
+          startPoint,
+          endPoint,
           fromRouteLineString
         );
 
@@ -131,7 +141,7 @@ export class RouteModelHelper {
           routes: [
             {
               ...fromRoute,
-              stops: routeStopsSlice,
+              stops: inBetweenStops.map((stop) => stop.id),
               coordinates:
                 routeLineSlice.geometry.coordinates.map<ICoordinates>(
                   ([lng, lat]) => ({
@@ -185,38 +195,64 @@ export class RouteModelHelper {
           // check previous existing transits
           if (!this._transitRoutes.some((tr) => tr.id === routeId)) {
             const commonStop = this.stops.find((stop) => {
-              const commonStopId = commonStops.at(isOnLeftHandSide ? -1 : 0);
+              const commonStopId = commonStops.at(-1);
 
-              // check if common stop is equal with the dest stop
-              if (commonStopId !== this.to) {
-                return stop.id === commonStopId;
-              }
-
-              return stop.id === commonStopId;
+              return (
+                !this.to.some((ts) => ts.id === commonStopId) &&
+                stop.id === commonStopId
+              );
             }) as IStop;
 
             if (!this.visitedRoute.has(fromRoute)) {
               this.visitedRoute.add(fromRoute);
             }
 
+            const startCommonStops = this.stops.filter(
+              (stop) =>
+                stop.name.en === commonStop.name.en &&
+                stop.road.en === commonStop.road.en &&
+                stop.township.en === commonStop.township.en
+            );
+
             // find in-between stops
             const fromInBetweenStops = StopModelHelper.findInBetweenStops(
               this.from,
-              commonStop.id,
-              fromRoute.stops
+              startCommonStops,
+              fromRoute.stops.map(
+                (s) => this.stops.find((stop) => stop.id === s) as IStop
+              )
             );
 
             const toInBetweenStops = StopModelHelper.findInBetweenStops(
-              commonStop.id,
+              startCommonStops,
               this.to,
-              toRoute.stops
+              toRoute.stops.map(
+                (s) => this.stops.find((stop) => stop.id === s) as IStop
+              )
             );
+
+            const fromStop = this.stops.find(
+              (stop) => stop.id === fromInBetweenStops.at(-1)?.id
+            ) as IStop;
+
+            const toStop = this.stops.find(
+              (stop) => stop.id === toInBetweenStops.at(-1)?.id
+            ) as IStop;
+
+            // start point
+            const startPoint = point([fromStop.lng, fromStop.lat], fromStop, {
+              id: fromStop.id,
+            });
+            // end point
+            const endPoint = point([toStop.lng, toStop.lat], toStop, {
+              id: toStop.id,
+            });
 
             // commonStop point to make slice line string
             const commonStopPoint = point([commonStop.lng, commonStop.lat]);
 
             const fromRouteLineSlice = createLineSlice(
-              this.startPoint,
+              startPoint,
               commonStopPoint,
               fromRouteLineString,
               routeId
@@ -224,7 +260,7 @@ export class RouteModelHelper {
 
             const toRouteLineSlice = createLineSlice(
               commonStopPoint,
-              this.endPoint,
+              endPoint,
               toRouteLineString,
               routeId
             );
@@ -244,7 +280,7 @@ export class RouteModelHelper {
               routes: [
                 {
                   ...fromRoute,
-                  stops: fromInBetweenStops,
+                  stops: fromInBetweenStops.map((stop) => stop.id),
                   coordinates: fromRouteLineSlice.geometry.coordinates.map(
                     ([lng, lat]) => ({
                       lng,
@@ -254,7 +290,7 @@ export class RouteModelHelper {
                 },
                 {
                   ...toRoute,
-                  stops: toInBetweenStops,
+                  stops: toInBetweenStops.map((stop) => stop.id),
                   coordinates: toRouteLineSlice.geometry.coordinates.map(
                     ([lng, lat]) => ({
                       lng,
@@ -329,32 +365,67 @@ export class RouteModelHelper {
           const routeId = `${fromRoute.route_id} - ${joinRoute.route_id} - ${toRoute.route_id}`;
 
           const commonStartStop = this.stops.find(
-            (stop) =>
-              stop.id === joinStartCommonStops.at(isOnLeftHandSide ? -1 : 0)
+            (stop) => stop.id === joinStartCommonStops.at(-1)
           ) as IStop;
 
           const commonEndStop = this.stops.find(
-            (stop) =>
-              stop.id === joinEndCommonStops.at(isOnLeftHandSide ? -1 : 0)
+            (stop) => stop.id === joinEndCommonStops.at(-1)
           ) as IStop;
+
+          const startCommonStops = this.stops.filter(
+            (stop) =>
+              stop.name.en === commonStartStop.name.en &&
+              stop.road.en === commonStartStop.road.en &&
+              stop.township.en === commonStartStop.township.en
+          );
+
+          const endCommonStops = this.stops.filter(
+            (stop) =>
+              stop.name.en === commonEndStop.name.en &&
+              stop.road.en === commonEndStop.road.en &&
+              stop.township.en === commonEndStop.township.en
+          );
 
           const fromInBetweenStops = StopModelHelper.findInBetweenStops(
             this.from,
-            commonStartStop.id,
-            fromRoute.stops
+            startCommonStops,
+            fromRoute.stops.map(
+              (s) => this.stops.find((stop) => stop.id === s) as IStop
+            )
           );
 
           const joinInBetweenStops = StopModelHelper.findInBetweenStops(
-            commonStartStop.id,
-            commonEndStop.id,
-            joinRoute.stops
+            startCommonStops,
+            endCommonStops,
+            joinRoute.stops.map(
+              (s) => this.stops.find((stop) => stop.id === s) as IStop
+            )
           );
 
           const toInBetweenStops = StopModelHelper.findInBetweenStops(
-            commonEndStop.id,
+            endCommonStops,
             this.to,
-            toRoute.stops
+            toRoute.stops.map(
+              (s) => this.stops.find((stop) => stop.id === s) as IStop
+            )
           );
+
+          const fromStop = this.stops.find(
+            (stop) => stop.id === fromInBetweenStops.at(-1)?.id
+          ) as IStop;
+
+          const toStop = this.stops.find(
+            (stop) => stop.id === toInBetweenStops.at(-1)?.id
+          ) as IStop;
+
+          // start point
+          const startPoint = point([fromStop.lng, fromStop.lat], fromStop, {
+            id: fromStop.id,
+          });
+          // end point
+          const endPoint = point([toStop.lng, toStop.lat], toStop, {
+            id: toStop.id,
+          });
 
           // geojson
           const commonStartStopPoint = point([
@@ -372,7 +443,7 @@ export class RouteModelHelper {
           );
 
           const fromRouteLineSlice = createLineSlice(
-            this.startPoint,
+            startPoint,
             commonStartStopPoint,
             fromRouteLineString,
             routeId
@@ -387,7 +458,7 @@ export class RouteModelHelper {
 
           const toRouteLineSlice = createLineSlice(
             commonEndStopPoint,
-            this.endPoint,
+            endPoint,
             toRouteLineString,
             routeId
           );
@@ -410,7 +481,7 @@ export class RouteModelHelper {
             routes: [
               {
                 ...fromRoute,
-                stops: fromInBetweenStops,
+                stops: fromInBetweenStops.map((stop) => stop.id),
                 coordinates: fromRouteLineSlice.geometry.coordinates.map(
                   ([lng, lat]) => ({
                     lng,
@@ -420,7 +491,7 @@ export class RouteModelHelper {
               },
               {
                 ...joinRoute,
-                stops: joinInBetweenStops,
+                stops: joinInBetweenStops.map((stop) => stop.id),
                 coordinates: joinRouteLineSlice.geometry.coordinates.map(
                   ([lng, lat]) => ({
                     lng,
@@ -430,7 +501,7 @@ export class RouteModelHelper {
               },
               {
                 ...toRoute,
-                stops: toInBetweenStops,
+                stops: toInBetweenStops.map((stop) => stop.id),
                 coordinates: toRouteLineSlice.geometry.coordinates.map(
                   ([lng, lat]) => ({
                     lng,
@@ -471,10 +542,13 @@ export class RouteModelHelper {
       } else if (prev.transitSteps.length > next.transitSteps.length) {
         return 1;
       } else {
-        // if transit steps are equal, prioritize by distance
-        if (prev.distance < next.distance) {
+        const prevStops = prev.routes.flatMap((r) => r.stops);
+        const nextStops = next.routes.flatMap((r) => r.stops);
+
+        // if transit steps are equal, prioritize by stops
+        if (prevStops.length < nextStops.length) {
           return -1;
-        } else if (prev.distance > next.distance) {
+        } else if (prevStops.length > nextStops.length) {
           return 1;
         } else {
           return 0;

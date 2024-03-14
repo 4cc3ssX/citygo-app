@@ -1,46 +1,63 @@
+import { IStop } from "@/typescript/models/stops";
+
 export class StopModelHelper {
   constructor() {}
 
   /**
-   * Determine if a stop is on the left hand side of the route.
-   * @param id 
-   * @returns 
-   */
-  public static isOnLeftHandSide(id: number): boolean {
-    return id % 2 === 0;
-  }
-
-  /**
    * Finds the stops between two given stop IDs in an array of stop IDs.
    *
-   * @param {number} from - The starting stop ID.
-   * @param {number} to - The ending stop ID.
+   * @param {IStop[]} fromStops - The starting stop ID.
+   * @param {IStop[]} toStops - The ending stop ID.
    * @param {number[]} stops - An array of stop IDs.
    * @return {number[]} - An array of stop IDs between the starting and ending stops.
    */
   public static findInBetweenStops(
-    from: number,
-    to: number,
-    stops: number[]
-  ): number[] {
-    let betweenStops: number[] = stops;
+    fromStops: IStop[],
+    toStops: IStop[],
+    stops: IStop[]
+  ): IStop[] {
+    let lsBetweenStops: IStop[] = [];
+    let rsBetweenStops: IStop[] = [];
 
-    const startIndex = stops.findIndex((stopId) => stopId === from);
+    // loop through each stop
+    for (let index = 0; index < fromStops.length; index++) {
+      const from = fromStops[index];
+      const to = toStops[index] || toStops[0];
 
-    const endIndex = stops.findIndex((stopId) => stopId === to);
+      if (!from || !to) {
+        continue;
+      }
 
-    if (startIndex === -1 || endIndex === -1) {
-      // stop not found
-      return [];
+      const startIndex = stops.findIndex((stop) => stop.id === from.id);
+      const endIndex = stops.findIndex((stop) => stop.id === to.id);
+
+      if (startIndex > endIndex) {
+        // end is before start and need to reversed
+        const leftSideBetweenStops = stops
+          .slice(endIndex, startIndex + 1)
+          .reverse();
+
+        lsBetweenStops = leftSideBetweenStops;
+      } else {
+        const rightSideBetweenStops = stops.slice(startIndex, endIndex + 1);
+
+        rsBetweenStops = rightSideBetweenStops;
+      }
     }
 
-    if (startIndex > endIndex) {
-      // end is before start and need to reversed
-      betweenStops = stops.slice(endIndex, startIndex + 1).reverse();
-    } else {
-      betweenStops = stops.slice(startIndex, endIndex + 1);
+    if (lsBetweenStops.length === 0) {
+      return rsBetweenStops;
     }
 
-    return betweenStops;
+    if (rsBetweenStops.length === 0) {
+      return lsBetweenStops;
+    }
+
+    // return shorter side
+    if (lsBetweenStops.length < rsBetweenStops.length) {
+      return lsBetweenStops;
+    }
+
+    return rsBetweenStops;
   }
 }
