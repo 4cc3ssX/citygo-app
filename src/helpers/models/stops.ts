@@ -19,39 +19,42 @@ export class StopModelHelper {
     const inBetweenStops: IStop[][] = [];
 
     // loop through each stop
-    for (let index = 0; index < fromStops.length; index++) {
-      const from = fromStops[index];
-      const to = toStops[index] || toStops[0];
+    for (const from of fromStops) {
+      for (const to of toStops) {
+        if (!from || !to) {
+          continue;
+        }
 
-      if (!from || !to) {
-        continue;
-      }
+        const startIndex = stops.findIndex((stop) => stop.id === from.id);
+        const endIndex = stops.findIndex((stop) => stop.id === to.id);
 
-      const startIndex = stops.findIndex((stop) => stop.id === from.id);
-      const endIndex = stops.findIndex((stop) => stop.id === to.id);
+        if (startIndex === -1 || endIndex === -1) {
+          continue;
+        }
 
-      if (startIndex === -1 || endIndex === -1) {
-        continue;
-      }
+        if (startIndex > endIndex) {
+          // end is before start and need to reversed
+          const leftSideBetweenStops = stops
+            .slice(endIndex, startIndex + 1)
+            .reverse();
 
-      if (startIndex > endIndex) {
-        // end is before start and need to reversed
-        const leftSideBetweenStops = stops
-          .slice(endIndex, startIndex + 1)
-          .reverse();
+          inBetweenStops.push(leftSideBetweenStops);
+        } else {
+          const rightSideBetweenStops = stops.slice(startIndex, endIndex + 1);
 
-        inBetweenStops.push(leftSideBetweenStops);
-      } else {
-        const rightSideBetweenStops = stops.slice(startIndex, endIndex + 1);
-
-        inBetweenStops.push(rightSideBetweenStops);
+          inBetweenStops.push(rightSideBetweenStops);
+        }
       }
     }
 
     // find the shortest in between stops
     const shortestInBetweenStops = inBetweenStops.reduce((prev, curr) => {
-      return prev.length < curr.length ? prev : curr;
-    });
+      return prev.length > 0 && prev.length < curr.length ? prev : curr;
+    }, []);
+
+    if (shortestInBetweenStops.length === 0) {
+      console.log(fromStops, toStops, inBetweenStops);
+    }
 
     return shortestInBetweenStops;
   }
