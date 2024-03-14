@@ -52,10 +52,6 @@ export class StopModelHelper {
       return prev.length > 0 && prev.length < curr.length ? prev : curr;
     }, []);
 
-    if (shortestInBetweenStops.length === 0) {
-      console.log(fromStops, toStops, inBetweenStops);
-    }
-
     return shortestInBetweenStops;
   }
 }
