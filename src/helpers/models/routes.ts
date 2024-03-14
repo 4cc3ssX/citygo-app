@@ -11,7 +11,7 @@ import { createLineSlice, createLineString } from ".";
 import length from "@turf/length";
 import { DistanceUnits } from "../validations";
 import { ICoordinates } from "@/typescript/models";
-import { intersection, omit } from "lodash-es";
+import { omit } from "lodash-es";
 
 export class RouteModelHelper {
   private from!: IStop[];
@@ -89,13 +89,12 @@ export class RouteModelHelper {
         fromRoute.route_id
       );
 
+      const hasDirectRoute = this.to.some((stop) =>
+        fromRoute.stops.includes(stop.id)
+      );
+
       // direct route check
-      if (
-        intersection(
-          fromRoute.stops,
-          [this.from.slice(0, 1), this.to.slice(0, 1)].flat().map((s) => s.id)
-        ).length === 2
-      ) {
+      if (hasDirectRoute) {
         // push found route to visitedRoute
         if (!this.visitedRoute.has(fromRoute)) {
           this.visitedRoute.add(fromRoute);
@@ -161,11 +160,6 @@ export class RouteModelHelper {
 
           distance: routeLength,
         });
-      }
-
-      // break the loop if the maximum number of routes is reached
-      if (this._transitRoutes.length >= this.count) {
-        return;
       }
 
       toLoop: for (const toRoute of toTransferPoint.routes) {

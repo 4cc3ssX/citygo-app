@@ -16,8 +16,7 @@ export class StopModelHelper {
     toStops: IStop[],
     stops: IStop[]
   ): IStop[] {
-    let lsBetweenStops: IStop[] = [];
-    let rsBetweenStops: IStop[] = [];
+    const inBetweenStops: IStop[][] = [];
 
     // loop through each stop
     for (let index = 0; index < fromStops.length; index++) {
@@ -31,33 +30,29 @@ export class StopModelHelper {
       const startIndex = stops.findIndex((stop) => stop.id === from.id);
       const endIndex = stops.findIndex((stop) => stop.id === to.id);
 
+      if (startIndex === -1 || endIndex === -1) {
+        continue;
+      }
+
       if (startIndex > endIndex) {
         // end is before start and need to reversed
         const leftSideBetweenStops = stops
           .slice(endIndex, startIndex + 1)
           .reverse();
 
-        lsBetweenStops = leftSideBetweenStops;
+        inBetweenStops.push(leftSideBetweenStops);
       } else {
         const rightSideBetweenStops = stops.slice(startIndex, endIndex + 1);
 
-        rsBetweenStops = rightSideBetweenStops;
+        inBetweenStops.push(rightSideBetweenStops);
       }
     }
 
-    if (lsBetweenStops.length === 0) {
-      return rsBetweenStops;
-    }
+    // find the shortest in between stops
+    const shortestInBetweenStops = inBetweenStops.reduce((prev, curr) => {
+      return prev.length < curr.length ? prev : curr;
+    });
 
-    if (rsBetweenStops.length === 0) {
-      return lsBetweenStops;
-    }
-
-    // return shorter side
-    if (lsBetweenStops.length < rsBetweenStops.length) {
-      return lsBetweenStops;
-    }
-
-    return rsBetweenStops;
+    return shortestInBetweenStops;
   }
 }
