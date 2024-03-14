@@ -62,7 +62,7 @@ import { IFindRoutes } from "@/typescript/request";
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as IFindRoutes;
   const searchParams = request.nextUrl.searchParams;
-  const count = Number(searchParams.get("count") || 5);
+  const count = Number(searchParams.get("count") || 10);
 
   // validate request
   const result = findRoutesRequestSchema.safeParse({

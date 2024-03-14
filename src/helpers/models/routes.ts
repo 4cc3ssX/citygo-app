@@ -109,7 +109,7 @@ export class RouteModelHelper {
         );
 
         const fromStop = this.stops.find(
-          (stop) => stop.id === inBetweenStops.at(-1)?.id
+          (stop) => stop.id === inBetweenStops.at(0)?.id
         ) as IStop;
 
         const toStop = this.stops.find(
@@ -226,7 +226,7 @@ export class RouteModelHelper {
             );
 
             const fromStop = this.stops.find(
-              (stop) => stop.id === fromInBetweenStops.at(-1)?.id
+              (stop) => stop.id === fromInBetweenStops.at(0)?.id
             ) as IStop;
 
             const toStop = this.stops.find(
@@ -405,7 +405,7 @@ export class RouteModelHelper {
           );
 
           const fromStop = this.stops.find(
-            (stop) => stop.id === fromInBetweenStops.at(-1)?.id
+            (stop) => stop.id === fromInBetweenStops.at(0)?.id
           ) as IStop;
 
           const toStop = this.stops.find(
