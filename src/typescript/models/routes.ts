@@ -30,7 +30,6 @@ export interface IRoute {
 
 export interface ITransitRoute {
   id: string;
-  routes: IRoute[];
   transitSteps: ITransitStep[];
   distance: number;
 }
@@ -46,7 +45,7 @@ export interface ITransitStep {
   distance: number;
 }
 
-export interface ITransit extends Omit<IRoute, "stops" | "coordinates"> {}
+export interface ITransit extends IRoute {}
 
 export interface ITransitWalk {
   from: ICoordinates;

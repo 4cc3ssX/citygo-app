@@ -8,23 +8,27 @@ export const routesRequestSchema = z.object({
 
 export const findRoutesRequestSchema = z.object({
   from: z.object({
-    preferId: z.number({ required_error: '"from.preferId" is required' }),
+    position: z
+      .object({
+        lat: z.number({ required_error: '"from.position.lat" is required' }),
+        lng: z.number({ required_error: '"from.position.lng" is required' }),
+      })
+      .optional(),
     name: z.string({ required_error: '"from.name" is required' }),
     road: z.string({ required_error: '"from.road" is required' }),
     township: z.string({ required_error: '"from.township" is required' }),
   }),
   to: z.object({
-    preferId: z.number({ required_error: '"from.preferId" is required' }),
+    position: z
+      .object({
+        lat: z.number({ required_error: '"to.position.lat" is required' }),
+        lng: z.number({ required_error: '"to.position.lng" is required' }),
+      })
+      .optional(),
     name: z.string({ required_error: '"to.name" is required' }),
     road: z.string({ required_error: '"to.road" is required' }),
     township: z.string({ required_error: '"to.township" is required' }),
   }),
-  user_pos: z
-    .object({
-      lat: z.string({ required_error: '"user_pos.lat" is required' }),
-      lng: z.string({ required_error: '"user_pos.lng" is required' }),
-    })
-    .optional(),
   count: z.number().min(5).max(10).optional(),
 });
 

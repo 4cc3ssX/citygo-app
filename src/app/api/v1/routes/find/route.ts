@@ -29,8 +29,13 @@ import { IFindRoutes } from "@/typescript/request";
  *             from:
  *               type: object
  *               properties:
- *                 preferId:
- *                   type: integer
+ *                 position:
+ *                   type: object
+ *                   properties:
+ *                     lat:
+ *                       type: integer
+ *                     lng:
+ *                       type: integer
  *                 name:
  *                   type: string
  *                 road:
@@ -40,8 +45,13 @@ import { IFindRoutes } from "@/typescript/request";
  *             to:
  *               type: object
  *               properties:
- *                 preferId:
- *                   type: integer
+ *                 position:
+ *                   type: object
+ *                   properties:
+ *                     lat:
+ *                       type: integer
+ *                     lng:
+ *                       type: integer
  *                 name:
  *                   type: string
  *                 road:
@@ -89,7 +99,8 @@ export async function POST(request: NextRequest) {
   // data
   const from = body.from;
   const to = body.to;
-  const userPosition = body.user_position || null;
+  const fromPosition = body.from.position || null;
+  const toPosition = body.to.position || null;
   const distanceUnit =
     (searchParams.get("distance_unit") as DistanceUnits) ||
     DistanceUnits.KILOMETERS;
@@ -146,7 +157,8 @@ export async function POST(request: NextRequest) {
     const routeModelHelper = new RouteModelHelper(
       stops,
       allRoutes,
-      userPosition,
+      fromPosition,
+      toPosition,
       count,
       distanceUnit
     );

@@ -1,7 +1,9 @@
 import {
   IRoute,
   ITransferPoint,
+  ITransit,
   ITransitRoute,
+  ITransitStep,
   TransitType,
 } from "@/typescript/models/routes";
 import { StopModelHelper } from "./stops";
@@ -11,7 +13,7 @@ import { createLineSlice, createLineString } from ".";
 import length from "@turf/length";
 import { DistanceUnits } from "../validations";
 import { ICoordinates } from "@/typescript/models";
-import { omit } from "lodash-es";
+import distance from "@turf/distance";
 
 export class RouteModelHelper {
   private from!: IStop[];
@@ -24,7 +26,8 @@ export class RouteModelHelper {
   constructor(
     private stops: IStop[],
     private routes: IRoute[],
-    private userPosition: ICoordinates | null,
+    private fromPosition: ICoordinates | null,
+    private toPosition: ICoordinates | null,
     private count: number,
     private distanceUnit: DistanceUnits
   ) {
@@ -137,27 +140,26 @@ export class RouteModelHelper {
 
         this._transitRoutes.push({
           id: fromRoute.route_id,
-          routes: [
-            {
-              ...fromRoute,
-              stops: inBetweenStops.map((stop) => stop.id),
-              coordinates:
-                routeLineSlice.geometry.coordinates.map<ICoordinates>(
-                  ([lng, lat]) => ({
-                    lng,
-                    lat,
-                  })
-                ),
-            },
-          ],
           transitSteps: [
+            ...(this.fromPosition
+              ? this.getWalkSteps(this.fromPosition, toStop)
+              : []),
             {
               type: TransitType.TRANSIT,
-              step: omit(fromRoute, ["stops", "coordinates"]),
+              step: {
+                ...fromRoute,
+                stops: inBetweenStops.map((stop) => stop.id),
+                coordinates:
+                  routeLineSlice.geometry.coordinates.map<ICoordinates>(
+                    ([lng, lat]) => ({
+                      lng,
+                      lat,
+                    })
+                  ),
+              },
               distance: routeLength,
             },
           ],
-
           distance: routeLength,
         });
       }
@@ -271,37 +273,37 @@ export class RouteModelHelper {
             // push to array
             this._transitRoutes.push({
               id: routeId,
-              routes: [
-                {
-                  ...fromRoute,
-                  stops: fromInBetweenStops.map((stop) => stop.id),
-                  coordinates: fromRouteLineSlice.geometry.coordinates.map(
-                    ([lng, lat]) => ({
-                      lng,
-                      lat,
-                    })
-                  ),
-                },
-                {
-                  ...toRoute,
-                  stops: toInBetweenStops.map((stop) => stop.id),
-                  coordinates: toRouteLineSlice.geometry.coordinates.map(
-                    ([lng, lat]) => ({
-                      lng,
-                      lat,
-                    })
-                  ),
-                },
-              ],
+
               transitSteps: [
+                ...(this.fromPosition
+                  ? this.getWalkSteps(this.fromPosition, toStop)
+                  : []),
                 {
                   type: TransitType.TRANSIT,
-                  step: omit(fromRoute, ["stops", "coordinates"]),
+                  step: {
+                    ...fromRoute,
+                    stops: fromInBetweenStops.map((stop) => stop.id),
+                    coordinates: fromRouteLineSlice.geometry.coordinates.map(
+                      ([lng, lat]) => ({
+                        lng,
+                        lat,
+                      })
+                    ),
+                  },
                   distance: fromRouteLength,
                 },
                 {
                   type: TransitType.TRANSIT,
-                  step: omit(toRoute, ["stops", "coordinates"]),
+                  step: {
+                    ...toRoute,
+                    stops: toInBetweenStops.map((stop) => stop.id),
+                    coordinates: toRouteLineSlice.geometry.coordinates.map(
+                      ([lng, lat]) => ({
+                        lng,
+                        lat,
+                      })
+                    ),
+                  },
                   distance: toRouteLength,
                 },
               ],
@@ -472,52 +474,50 @@ export class RouteModelHelper {
           // push to array
           this._transitRoutes.push({
             id: routeId,
-            routes: [
-              {
-                ...fromRoute,
-                stops: fromInBetweenStops.map((stop) => stop.id),
-                coordinates: fromRouteLineSlice.geometry.coordinates.map(
-                  ([lng, lat]) => ({
-                    lng,
-                    lat,
-                  })
-                ),
-              },
-              {
-                ...joinRoute,
-                stops: joinInBetweenStops.map((stop) => stop.id),
-                coordinates: joinRouteLineSlice.geometry.coordinates.map(
-                  ([lng, lat]) => ({
-                    lng,
-                    lat,
-                  })
-                ),
-              },
-              {
-                ...toRoute,
-                stops: toInBetweenStops.map((stop) => stop.id),
-                coordinates: toRouteLineSlice.geometry.coordinates.map(
-                  ([lng, lat]) => ({
-                    lng,
-                    lat,
-                  })
-                ),
-              },
-            ],
             transitSteps: [
+              ...(this.fromPosition
+                ? this.getWalkSteps(this.fromPosition, toStop)
+                : []),
               {
                 type: TransitType.TRANSIT,
-                step: omit(fromRoute, ["stops", "coordinates"]),
+                step: {
+                  ...fromRoute,
+                  stops: fromInBetweenStops.map((stop) => stop.id),
+                  coordinates: fromRouteLineSlice.geometry.coordinates.map(
+                    ([lng, lat]) => ({
+                      lng,
+                      lat,
+                    })
+                  ),
+                },
                 distance: fromRouteLength,
               },
               {
                 type: TransitType.TRANSIT,
-                step: omit(joinRoute, ["stops", "coordinates"]),
+                step: {
+                  ...joinRoute,
+                  stops: joinInBetweenStops.map((stop) => stop.id),
+                  coordinates: joinRouteLineSlice.geometry.coordinates.map(
+                    ([lng, lat]) => ({
+                      lng,
+                      lat,
+                    })
+                  ),
+                },
                 distance: joinRouteLength,
               },
               {
                 type: TransitType.TRANSIT,
-                step: omit(toRoute, ["stops", "coordinates"]),
+                step: {
+                  ...toRoute,
+                  stops: toInBetweenStops.map((stop) => stop.id),
+                  coordinates: toRouteLineSlice.geometry.coordinates.map(
+                    ([lng, lat]) => ({
+                      lng,
+                      lat,
+                    })
+                  ),
+                },
                 distance: toRouteLength,
               },
             ],
@@ -536,8 +536,12 @@ export class RouteModelHelper {
       } else if (prev.transitSteps.length > next.transitSteps.length) {
         return 1;
       } else {
-        const prevStops = prev.routes.flatMap((r) => r.stops);
-        const nextStops = next.routes.flatMap((r) => r.stops);
+        const prevStops = prev.transitSteps
+          .filter((step) => step.type === TransitType.TRANSIT)
+          .flatMap((r) => (r.step as ITransit).stops);
+        const nextStops = next.transitSteps
+          .filter((step) => step.type === TransitType.TRANSIT)
+          .flatMap((r) => (r.step as ITransit).stops);
 
         // if transit steps are equal, prioritize by stops
         if (prevStops.length < nextStops.length) {
@@ -549,5 +553,28 @@ export class RouteModelHelper {
         }
       }
     });
+  }
+
+  private getWalkSteps(from: ICoordinates, to: ICoordinates): ITransitStep[] {
+    const walkSteps: ITransitStep[] = [];
+
+    const fromPoint = point([from.lng, from.lat]);
+    const toPoint = point([to.lng, to.lat]);
+
+    // calculate walk distance
+    const walkDistance = distance(fromPoint, toPoint, {
+      units: this.distanceUnit,
+    });
+
+    walkSteps.push({
+      type: TransitType.WALK,
+      step: {
+        from,
+        to,
+      },
+      distance: walkDistance,
+    });
+
+    return walkSteps;
   }
 }
