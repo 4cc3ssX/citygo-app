@@ -145,7 +145,7 @@ export class RouteModelHelper {
             ...(this.fromPosition
               ? this.getWalkSteps(
                   this.fromPosition,
-                  pick(toStop, ["lat", "lng"])
+                  pick(fromStop, ["lat", "lng"])
                 )
               : []),
             {
@@ -283,7 +283,7 @@ export class RouteModelHelper {
                 ...(this.fromPosition
                   ? this.getWalkSteps(
                       this.fromPosition,
-                      pick(toStop, ["lat", "lng"])
+                      pick(fromStop, ["lat", "lng"])
                     )
                   : []),
                 {
@@ -484,7 +484,7 @@ export class RouteModelHelper {
               ...(this.fromPosition
                 ? this.getWalkSteps(
                     this.fromPosition,
-                    pick(toStop, ["lat", "lng"])
+                    pick(fromStop, ["lat", "lng"])
                   )
                 : []),
               {
