@@ -14,6 +14,7 @@ import length from "@turf/length";
 import { DistanceUnits } from "../validations";
 import { ICoordinates } from "@/typescript/models";
 import distance from "@turf/distance";
+import { pick } from "lodash-es";
 
 export class RouteModelHelper {
   private from!: IStop[];
@@ -142,7 +143,10 @@ export class RouteModelHelper {
           id: fromRoute.route_id,
           transitSteps: [
             ...(this.fromPosition
-              ? this.getWalkSteps(this.fromPosition, toStop)
+              ? this.getWalkSteps(
+                  this.fromPosition,
+                  pick(toStop, ["lat", "lng"])
+                )
               : []),
             {
               type: TransitType.TRANSIT,
@@ -276,7 +280,10 @@ export class RouteModelHelper {
 
               transitSteps: [
                 ...(this.fromPosition
-                  ? this.getWalkSteps(this.fromPosition, toStop)
+                  ? this.getWalkSteps(
+                      this.fromPosition,
+                      pick(toStop, ["lat", "lng"])
+                    )
                   : []),
                 {
                   type: TransitType.TRANSIT,
@@ -476,7 +483,10 @@ export class RouteModelHelper {
             id: routeId,
             transitSteps: [
               ...(this.fromPosition
-                ? this.getWalkSteps(this.fromPosition, toStop)
+                ? this.getWalkSteps(
+                    this.fromPosition,
+                    pick(toStop, ["lat", "lng"])
+                  )
                 : []),
               {
                 type: TransitType.TRANSIT,
