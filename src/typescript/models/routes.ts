@@ -31,7 +31,6 @@ export interface IRoute {
 export interface ITransitRoute {
   id: string;
   transitSteps: ITransitStep[];
-  distance: number;
 }
 
 export enum TransitType {

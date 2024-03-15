@@ -164,7 +164,6 @@ export class RouteModelHelper {
               distance: routeLength,
             },
           ],
-          distance: routeLength,
         });
       }
 
@@ -183,7 +182,9 @@ export class RouteModelHelper {
           const routeId = `${fromRoute.route_id} - ${toRoute.route_id}`;
 
           // check previous existing transits
-          if (this.visitedRoute.has(fromRoute)) {
+          if (!this.visitedRoute.has(fromRoute)) {
+            this.visitedRoute.add(fromRoute);
+          } else {
             continue fromLoop;
           }
 
@@ -314,8 +315,6 @@ export class RouteModelHelper {
                   distance: toRouteLength,
                 },
               ],
-
-              distance: fromRouteLength + toRouteLength,
             });
           }
         }
@@ -531,7 +530,6 @@ export class RouteModelHelper {
                 distance: toRouteLength,
               },
             ],
-            distance: fromRouteLength + joinRouteLength + toRouteLength,
           });
         }
       }

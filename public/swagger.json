@@ -66,8 +66,16 @@
                 "from": {
                   "type": "object",
                   "properties": {
-                    "preferId": {
-                      "type": "integer"
+                    "position": {
+                      "type": "object",
+                      "properties": {
+                        "lat": {
+                          "type": "integer"
+                        },
+                        "lng": {
+                          "type": "integer"
+                        }
+                      }
                     },
                     "name": {
                       "type": "string"
@@ -83,8 +91,16 @@
                 "to": {
                   "type": "object",
                   "properties": {
-                    "preferId": {
-                      "type": "integer"
+                    "position": {
+                      "type": "object",
+                      "properties": {
+                        "lat": {
+                          "type": "integer"
+                        },
+                        "lng": {
+                          "type": "integer"
+                        }
+                      }
                     },
                     "name": {
                       "type": "string"
