@@ -49,7 +49,7 @@ export class StopModelHelper {
 
     // find the shortest in between stops
     const shortestInBetweenStops = inBetweenStops.reduce((prev, curr) => {
-      return prev.length > 0 && prev.length < curr.length ? prev : curr;
+      return prev.length > 0 && prev.length <= curr.length ? prev : curr;
     }, []);
 
     return shortestInBetweenStops;
