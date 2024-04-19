@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
     toStops.sort((a, b) => a.id - b.id);
 
     // Fetch all routes
-    const allRoutes = await routesModel.findAllRoutes({});
+    const allRoutes = await routesModel.searchRoutes({});
 
     const routeModelHelper = new RouteModelHelper(
       stops,

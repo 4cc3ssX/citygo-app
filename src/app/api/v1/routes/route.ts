@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     const client = await clientPromise;
 
     const routeModel = new Routes(client);
-    const routes = await routeModel.findAllRoutes({});
+    const routes = await routeModel.searchRoutes({});
 
     routes.sort(({ route_id: routeIdA }, { route_id: routeIdB }) => {
       const a = routeIdA.split("-")[0];

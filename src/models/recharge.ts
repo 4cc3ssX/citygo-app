@@ -1,15 +1,15 @@
 import logger from "@/lib/logger";
 import { ILogger } from "@/typescript/logger";
-import { IStop, ISearchStops } from "@/typescript/models/stops";
+import { IRecharge, IRechargeSearchType } from "@/typescript/models/recharge";
 import { Pagination } from "@/typescript/response";
 import { Collection, Db, Document, Filter, MongoClient } from "mongodb";
 import { BaseModel } from "./base";
 
-export class Stops extends BaseModel<IStop> {
+export class Recharge extends BaseModel<IRecharge> {
   readonly _logger: ILogger;
   readonly _db: Db;
-  readonly _collection: Collection<IStop>;
-  readonly COLLECTION_NAME = "stops"  as const;
+  readonly _collection: Collection<IRecharge>;
+  readonly COLLECTION_NAME = "recharge"  as const;
   _defaultProjection: Document = { _id: 0 };
 
   constructor(_client: MongoClient, _logger: ILogger = logger) {
@@ -20,56 +20,34 @@ export class Stops extends BaseModel<IStop> {
     this._collection = this._db.collection(this.COLLECTION_NAME);
   }
 
-  async countStops(stop: ISearchStops): Promise<number> {
+  async countStations(search: IRechargeSearchType): Promise<number> {
     const count = await this._collection.countDocuments(
-      this.createFilter(stop)
+      this.createFilter(search)
     );
     return count;
   }
 
-  /**
-   * Retrieves all stops based on the given search criteria.
-   *
-   * @param {ISearchStops} stop The search criteria for the stops.
-   * @return {Promise<IStop[]>} A promise that resolves to an array of stops.
-   */
-  async searchStops(
-    stop: ISearchStops,
+  searchRechargeStations(
+    search: IRechargeSearchType,
     { page, size }: Omit<Partial<Pagination>, "total" | "nextPage" | "prevPage">
-  ): Promise<IStop[]> {
-    const filters: Filter<IStop> = this.createFilter(stop);
+  ) {
+    const filters: Filter<IRecharge> = this.createFilter(search);
 
-    const stops = this._collection
+    const rechargeStations = this._collection
       .find(filters)
       .project(this._defaultProjection);
 
     if (page && size) {
-      stops.skip(size * (page - 1));
-      stops.limit(size);
+      rechargeStations.skip(size * (page - 1));
+      rechargeStations.limit(size);
     }
 
-    return stops.toArray() as Promise<IStop[]>;
+    return rechargeStations.toArray() as Promise<IRecharge[]>;
   }
 
-  /**
-   * Retrieves a stop by its ID.
-   *
-   * @param {number} id - The ID of the stop.
-   * @return {Promise<IStop | null>} A promise that resolves to the stop object or null if not found.
-   */
-  async getStop(id: number): Promise<IStop | null> {
-    const stop = await this._collection.findOne(
-      { id },
-      {
-        projection: this._defaultProjection,
-      }
-    );
-
-    return stop;
-  }
-
-  protected createFilter(search: ISearchStops): Filter<IStop> {
-    const filters: Filter<IStop> = { $and: [] };
+  // MARK: createFilter
+  protected createFilter(search: IRechargeSearchType): Filter<IRecharge> {
+    const filters: Filter<IRecharge> = { $and: [] };
 
     // loop through each property in the stop object
     Object.entries(search).forEach(([key, value]) => {

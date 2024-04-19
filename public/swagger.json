@@ -6,6 +6,19 @@
     "description": "OneBus is a Next.js application designed to provide effortless bus route and stop searches. This API enables users to retrieve information about bus line routes, stops, and perform health checks. Explore the various endpoints to access valuable data related to the OneBus transportation system."
   },
   "paths": {
+    "/api/v1/ads": {
+      "get": {
+        "summary": "Get all ads",
+        "tags": [
+          "ads"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
     "/api/v1/healthz": {
       "get": {
         "summary": "Health Check",
@@ -15,6 +28,19 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/recharge": {
+      "get": {
+        "summary": "Get all recharge stations",
+        "tags": [
+          "recharge"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
           }
         }
       }

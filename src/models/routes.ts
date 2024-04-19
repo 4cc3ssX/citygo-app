@@ -2,45 +2,32 @@ import logger from "@/lib/logger";
 import { ILogger } from "@/typescript/logger";
 import { IRoute, IRouteSearchType } from "@/typescript/models/routes";
 import { Collection, Db, Document, Filter, MongoClient } from "mongodb";
+import { BaseModel } from "./base";
 
-export class Routes {
-  private _logger: ILogger;
-  private _db: Db;
-  private _collection: Collection<IRoute>;
-  private _defaultProjection: Document = { _id: 0 };
+export class Routes extends BaseModel<IRoute> {
+  readonly _logger: ILogger;
+  readonly _db: Db;
+  readonly _collection: Collection<IRoute>;
+  readonly COLLECTION_NAME = "routes" as const;
+  _defaultProjection: Document = { _id: 0 };
 
   constructor(_client: MongoClient, _logger: ILogger = logger) {
-    this._logger = _logger;
+    super();
 
+    this._logger = _logger;
     this._db = _client.db();
-    this._collection = this._db.collection<IRoute>("routes");
+    this._collection = this._db.collection<IRoute>(this.COLLECTION_NAME);
   }
 
+  // MARK: searchRoutes
   /**
    * Retrieves all routes based on the provided search criteria.
    *
-   * @param {IRouteSearchType} route The search criteria for routes.
+   * @param {IRouteSearchType} search The search criteria for routes.
    * @return {Promise<IRoute[]>} A promise that resolves to an array of routes.
    */
-  async findAllRoutes(route: IRouteSearchType): Promise<IRoute[]> {
-    const filters: Filter<IRoute> = { $and: [] };
-
-    // loop through each property in the route object
-    Object.entries(route).forEach(([key, value]) => {
-      if (typeof value === "string" && value) {
-        filters.$and?.push({
-          $or: [
-            { [key]: new RegExp(`${value}`, "i") },
-            { [key]: new RegExp(`${value}`, "i") },
-          ],
-        });
-      }
-    });
-
-    // If there are no filters, remove the $and property
-    if (filters.$and?.length === 0) {
-      delete filters.$and;
-    }
+  async searchRoutes(search: IRouteSearchType): Promise<IRoute[]> {
+    const filters: Filter<IRoute> = this.createFilter(search)
 
     const routes = await this._collection
       .find(filters)
@@ -66,5 +53,29 @@ export class Routes {
     );
 
     return route;
+  }
+
+  // MARK: createFilter
+  protected createFilter(search: IRouteSearchType): Filter<IRoute> {
+    const filters: Filter<IRoute> = { $and: [] };
+
+    // loop through each property in the route object
+    Object.entries(search).forEach(([key, value]) => {
+      if (typeof value === "string" && value) {
+        filters.$and?.push({
+          $or: [
+            { [key]: new RegExp(`${value}`, "i") },
+            { [key]: new RegExp(`${value}`, "i") },
+          ],
+        });
+      }
+    });
+
+    // If there are no filters, remove the $and property
+    if (filters.$and?.length === 0) {
+      delete filters.$and;
+    }
+
+    return filters;
   }
 }

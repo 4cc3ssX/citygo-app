@@ -42,6 +42,16 @@ export class RouteModelHelper {
     return sortedTransitRoutes.slice(0, this.count);
   }
 
+  canWalk(from: ICoordinates, to: ICoordinates) {
+    const walkDistance = distance(
+      point([from.lng, from.lat]),
+      point([to.lng, to.lat]),
+      { units: DistanceUnits.METERS }
+    );
+
+    return walkDistance < 1000; // meters
+  }
+
   public updateFromStops(from: IStop[]) {
     this.from = from;
   }
@@ -142,7 +152,8 @@ export class RouteModelHelper {
         this._transitRoutes.push({
           id: fromRoute.route_id,
           transitSteps: [
-            ...(this.fromPosition
+            ...(this.fromPosition &&
+            this.canWalk(this.fromPosition, pick(fromStop, ["lat", "lng"]))
               ? this.getWalkSteps(
                   this.fromPosition,
                   pick(fromStop, ["lat", "lng"])
@@ -280,7 +291,8 @@ export class RouteModelHelper {
               id: routeId,
 
               transitSteps: [
-                ...(this.fromPosition
+                ...(this.fromPosition &&
+                this.canWalk(this.fromPosition, pick(fromStop, ["lat", "lng"]))
                   ? this.getWalkSteps(
                       this.fromPosition,
                       pick(fromStop, ["lat", "lng"])
@@ -481,7 +493,8 @@ export class RouteModelHelper {
           this._transitRoutes.push({
             id: routeId,
             transitSteps: [
-              ...(this.fromPosition
+              ...(this.fromPosition &&
+              this.canWalk(this.fromPosition, pick(fromStop, ["lat", "lng"]))
                 ? this.getWalkSteps(
                     this.fromPosition,
                     pick(fromStop, ["lat", "lng"])
