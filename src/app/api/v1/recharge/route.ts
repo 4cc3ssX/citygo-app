@@ -30,6 +30,26 @@ export const revalidate = 60 * 60; // 1 hour
  *     summary: Get all recharge stations
  *     tags:
  *       - recharge
+ *     parameters:
+ *       - name: name
+ *         in: query
+ *         type: string
+ *       - name: road
+ *         in: query
+ *         type: string
+ *       - name: township
+ *         in: query
+ *         type: string
+ *       - name: page
+ *         in: query
+ *         type: integer
+ *       - name: size
+ *         in: query
+ *         type: integer
+ *       - name: format
+ *         in: query
+ *         type: string
+ *         enum: [json, geojson]
  *     responses:
  *       200:
  *         description: Successful response

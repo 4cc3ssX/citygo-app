@@ -38,6 +38,42 @@
         "tags": [
           "recharge"
         ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "road",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "township",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "integer"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "type": "integer"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "type": "string",
+            "enum": [
+              "json",
+              "geojson"
+            ]
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful response"
@@ -293,6 +329,28 @@
               "json",
               "geojson"
             ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/v1/suggestions": {
+      "get": {
+        "summary": "Get all suggested places",
+        "tags": [
+          "suggestions"
+        ],
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Region name"
           }
         ],
         "responses": {
