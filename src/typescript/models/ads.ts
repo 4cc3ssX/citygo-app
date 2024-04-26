@@ -6,9 +6,14 @@ export enum AdType {
   APP_OPEN = "app-open",
 }
 
+export type AdImage = {
+  url: string;
+  blurhash: string | null | undefined;
+};
+
 export interface IAds {
   type: AdType;
-  image: string;
+  image: AdImage;
   url: string;
   expireAt: number | null;
 }
