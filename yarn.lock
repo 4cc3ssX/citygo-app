@@ -2019,6 +2019,48 @@ __metadata:
   languageName: node
   linkType: hard
 
+"citygo-app@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "citygo-app@workspace:."
+  dependencies:
+    "@turf/distance": "patch:@turf/distance@npm%3A6.5.0#~/.yarn/patches/@turf-distance-npm-6.5.0-31f0d31a23.patch"
+    "@turf/helpers": "patch:@turf/helpers@npm%3A6.5.0#~/.yarn/patches/@turf-helpers-npm-6.5.0-a40ad42565.patch"
+    "@turf/length": "patch:@turf/length@npm%3A6.5.0#~/.yarn/patches/@turf-length-npm-6.5.0-a4605ff17c.patch"
+    "@turf/line-slice": "patch:@turf/line-slice@npm%3A6.5.0#~/.yarn/patches/@turf-line-slice-npm-6.5.0-f0b240f5af.patch"
+    "@turf/nearest-point-on-line": "patch:@turf/nearest-point-on-line@npm%3A6.5.0#~/.yarn/patches/@turf-nearest-point-on-line-npm-6.5.0-eaa67a26e0.patch"
+    "@types/lodash-es": "npm:^4"
+    "@types/node": "npm:^20"
+    "@types/react": "npm:^18"
+    "@types/react-dom": "npm:^18"
+    "@types/swagger-ui-react": "npm:^4.18.3"
+    "@typescript-eslint/eslint-plugin": "npm:^6.13.2"
+    "@typescript-eslint/parser": "npm:^6.13.2"
+    autoprefixer: "npm:^10.0.1"
+    class-variance-authority: "npm:^0.7.0"
+    clsx: "npm:^2.1.0"
+    eslint: "npm:^8"
+    eslint-config-next: "npm:^14.2.3"
+    eslint-plugin-unused-imports: "npm:^3.0.0"
+    http-status-codes: "npm:^2.3.0"
+    lodash-es: "npm:^4.17.21"
+    lucide-react: "npm:^0.314.0"
+    mongodb: "npm:^6.4.0"
+    next: "npm:^14.2.3"
+    next-swagger-doc: "npm:^0.4.0"
+    postcss: "npm:^8"
+    react: "npm:^18.3.0"
+    react-dom: "npm:^18.3.0"
+    swagger-ui-react: "npm:^5.11.0"
+    tailwind-merge: "npm:^2.2.0"
+    tailwindcss: "npm:^3.3.0"
+    tailwindcss-animate: "npm:^1.0.7"
+    typescript: "npm:^5"
+    utility-types: "npm:^3.10.0"
+    winston: "npm:^3.11.0"
+    zod: "npm:^3.22.4"
+  languageName: unknown
+  linkType: soft
+
 "class-variance-authority@npm:^0.7.0":
   version: 0.7.0
   resolution: "class-variance-authority@npm:0.7.0"
@@ -4780,48 +4822,6 @@ __metadata:
   checksum: 6e4887b331edbb954f4e915831cbec0a7b9956c36f4feb5f6de98c448ac02ff881fd8d9b55a6b1b55030af184c6b648f340a76eb211812f4ad8c9b4b8692fdaa
   languageName: node
   linkType: hard
-
-"onebus-app@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "onebus-app@workspace:."
-  dependencies:
-    "@turf/distance": "patch:@turf/distance@npm%3A6.5.0#~/.yarn/patches/@turf-distance-npm-6.5.0-31f0d31a23.patch"
-    "@turf/helpers": "patch:@turf/helpers@npm%3A6.5.0#~/.yarn/patches/@turf-helpers-npm-6.5.0-a40ad42565.patch"
-    "@turf/length": "patch:@turf/length@npm%3A6.5.0#~/.yarn/patches/@turf-length-npm-6.5.0-a4605ff17c.patch"
-    "@turf/line-slice": "patch:@turf/line-slice@npm%3A6.5.0#~/.yarn/patches/@turf-line-slice-npm-6.5.0-f0b240f5af.patch"
-    "@turf/nearest-point-on-line": "patch:@turf/nearest-point-on-line@npm%3A6.5.0#~/.yarn/patches/@turf-nearest-point-on-line-npm-6.5.0-eaa67a26e0.patch"
-    "@types/lodash-es": "npm:^4"
-    "@types/node": "npm:^20"
-    "@types/react": "npm:^18"
-    "@types/react-dom": "npm:^18"
-    "@types/swagger-ui-react": "npm:^4.18.3"
-    "@typescript-eslint/eslint-plugin": "npm:^6.13.2"
-    "@typescript-eslint/parser": "npm:^6.13.2"
-    autoprefixer: "npm:^10.0.1"
-    class-variance-authority: "npm:^0.7.0"
-    clsx: "npm:^2.1.0"
-    eslint: "npm:^8"
-    eslint-config-next: "npm:^14.2.3"
-    eslint-plugin-unused-imports: "npm:^3.0.0"
-    http-status-codes: "npm:^2.3.0"
-    lodash-es: "npm:^4.17.21"
-    lucide-react: "npm:^0.314.0"
-    mongodb: "npm:^6.4.0"
-    next: "npm:^14.2.3"
-    next-swagger-doc: "npm:^0.4.0"
-    postcss: "npm:^8"
-    react: "npm:^18.3.0"
-    react-dom: "npm:^18.3.0"
-    swagger-ui-react: "npm:^5.11.0"
-    tailwind-merge: "npm:^2.2.0"
-    tailwindcss: "npm:^3.3.0"
-    tailwindcss-animate: "npm:^1.0.7"
-    typescript: "npm:^5"
-    utility-types: "npm:^3.10.0"
-    winston: "npm:^3.11.0"
-    zod: "npm:^3.22.4"
-  languageName: unknown
-  linkType: soft
 
 "open@npm:^7.4.2":
   version: 7.4.2

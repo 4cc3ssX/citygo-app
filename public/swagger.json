@@ -1,9 +1,9 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "OneBus API",
+    "title": "CityGo API",
     "version": "1.0.0",
-    "description": "OneBus is a Next.js application designed to provide effortless bus route and stop searches. This API enables users to retrieve information about bus line routes, stops, and perform health checks. Explore the various endpoints to access valuable data related to the OneBus transportation system."
+    "description": "CityGo is a Next.js application designed to provide effortless bus route and stop searches. This API enables users to retrieve information about bus line routes, stops, and perform health checks. Explore the various endpoints to access valuable data related to the CityGo transportation system."
   },
   "paths": {
     "/api/v1/ads": {

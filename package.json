@@ -1,7 +1,7 @@
 {
-  "name": "onebus-app",
+  "name": "citygo-app",
   "version": "1.0.0",
-  "description": "OneBus is a Next.js application designed to provide effortless bus route and stop searches. This API enables users to retrieve information about bus line routes, stops, and perform health checks. Explore the various endpoints to access valuable data related to the OneBus transportation system.",
+  "description": "CityGo is a Next.js application designed to provide effortless bus route and stop searches. This API enables users to retrieve information about bus line routes, stops, and perform health checks. Explore the various endpoints to access valuable data related to the CityGo transportation system.",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -11,20 +11,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/4cc3ssX/onebus-app"
+    "url": "https://github.com/4cc3ssX/citygo-app"
   },
   "keywords": [
-    "onebus-app",
-    "onebus-api",
+    "citygo-app",
+    "citygo-api",
     "bus",
-    "onebus"
+    "citygo"
   ],
   "author": "Ryam",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/4cc3ssX/onebus-app/issues"
+    "url": "https://github.com/4cc3ssX/citygo-app/issues"
   },
-  "homepage": "https://github.com/4cc3ssX/onebus-app#readme",
+  "homepage": "https://github.com/4cc3ssX/citygo-app#readme",
   "dependencies": {
     "@turf/distance": "patch:@turf/distance@npm%3A6.5.0#~/.yarn/patches/@turf-distance-npm-6.5.0-31f0d31a23.patch",
     "@turf/helpers": "patch:@turf/helpers@npm%3A6.5.0#~/.yarn/patches/@turf-helpers-npm-6.5.0-a40ad42565.patch",
