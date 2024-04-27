@@ -13,5 +13,7 @@ export const rechargeRequestSchema = z.object({
     .number({ invalid_type_error: '"size" must be a number' })
     .positive()
     .optional(),
+
+    
   format: z.nativeEnum(ResponseFormat).optional(),
 });

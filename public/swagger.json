@@ -65,6 +65,18 @@
             "type": "integer"
           },
           {
+            "name": "region",
+            "in": "query",
+            "type": "string",
+            "description": "Region name"
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "type": "string",
+            "description": "Country code"
+          },
+          {
             "name": "format",
             "in": "query",
             "type": "string",

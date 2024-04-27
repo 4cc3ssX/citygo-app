@@ -11,7 +11,7 @@ export class Suggestions extends BaseModel<ISuggestion> {
   readonly _logger: ILogger;
   readonly _db: Db;
   readonly _collection: Collection<ISuggestion>;
-  readonly COLLECTION_NAME = "suggestions" as const;
+  readonly COLLECTION_NAME = "suggestions";
   _defaultProjection: Document = { _id: 0 };
 
   constructor(_client: MongoClient, _logger: ILogger = logger) {
@@ -38,7 +38,14 @@ export class Suggestions extends BaseModel<ISuggestion> {
 
     // loop through each property in the stop object
     Object.entries(search).forEach(([key, value]) => {
-      if (typeof value === "string" && value) {
+      if ((key === "region" || key === "country") && value) {
+        filters.$and?.push({
+          $or: [
+            { [key]: new RegExp(`${value}`, "i") },
+            { [key]: new RegExp(`${value}`, "i") },
+          ],
+        });
+      } else if (typeof value === "string" && value) {
         filters.$and?.push({
           $or: [
             { [`${key}.en`]: new RegExp(`${value}`, "i") },

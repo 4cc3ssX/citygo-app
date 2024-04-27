@@ -8,7 +8,7 @@ export class Ads extends BaseModel<IAds> {
   readonly _logger: ILogger;
   readonly _db: Db;
   readonly _collection: Collection<IAds>;
-  readonly COLLECTION_NAME = "ads" as const;
+  readonly COLLECTION_NAME = "ads";
   _defaultProjection: Document = { _id: 0 };
 
   constructor(_client: MongoClient, _logger: ILogger = logger) {
@@ -36,7 +36,14 @@ export class Ads extends BaseModel<IAds> {
 
     // loop through each property in the stop object
     Object.entries(search).forEach(([key, value]) => {
-      if (typeof value === "string" && value) {
+      if ((key === "region" || key === "country") && value) {
+        filters.$and?.push({
+          $or: [
+            { [key]: new RegExp(`${value}`, "i") },
+            { [key]: new RegExp(`${value}`, "i") },
+          ],
+        });
+      } else if (typeof value === "string" && value) {
         filters.$and?.push({
           $or: [
             { [`${key}.en`]: new RegExp(`${value}`, "i") },

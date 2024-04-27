@@ -1,7 +1,7 @@
 import { suggestionRequestSchema } from "@/helpers/validations/suggestions";
 import clientPromise from "@/lib/db";
 import logger from "@/lib/logger";
-import { Suggestions } from "@/models/Suggestions";
+import { Suggestions } from "@/models/suggestions";
 import { ISuggestion } from "@/typescript/models/suggestions";
 import { IResponse, ResponseError } from "@/typescript/response";
 import { convertZodErrorToResponseError } from "@/utils/validations";
@@ -54,7 +54,8 @@ export async function GET(request: NextRequest) {
   }
 
   // search queries
-  const region = searchParams.get("region") as string;
+  const region = searchParams.get("region") || process.env.DEFAULT_REGION;
+  const country = searchParams.get("country") || process.env.DEFAULT_COUNTRY;
 
   try {
     const client = await clientPromise;
@@ -62,6 +63,7 @@ export async function GET(request: NextRequest) {
     const suggestionModel = new Suggestions(client);
     const suggestions = await suggestionModel.searchSuggestions({
       region,
+      country,
     });
 
     return Response.json(

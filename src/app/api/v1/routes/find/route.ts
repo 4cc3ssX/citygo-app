@@ -101,6 +101,9 @@ export async function POST(request: NextRequest) {
   const to = body.to;
   const fromPosition = body.from.position || null;
   const toPosition = body.to.position || null;
+  const region = searchParams.get("region") || undefined;
+  const country = searchParams.get("country") || process.env.DEFAULT_COUNTRY;
+
   const distanceUnit =
     (searchParams.get("distance_unit") as DistanceUnits) ||
     DistanceUnits.KILOMETERS;
@@ -113,9 +116,23 @@ export async function POST(request: NextRequest) {
     const routesModel = new Routes(client);
 
     // Fetch all stops
-    const stops = await stopsModel.searchStops({}, {});
-    const fromStops = await stopsModel.searchStops(from, {});
-    const toStops = await stopsModel.searchStops(to, {});
+    const stops = await stopsModel.searchStops({ region, country }, {});
+    const fromStops = await stopsModel.searchStops(
+      {
+        ...from,
+        region,
+        country,
+      },
+      {}
+    );
+    const toStops = await stopsModel.searchStops(
+      {
+        ...to,
+        region,
+        country,
+      },
+      {}
+    );
 
     if (
       isEmpty(fromStops) ||
@@ -152,7 +169,7 @@ export async function POST(request: NextRequest) {
     toStops.sort((a, b) => a.id - b.id);
 
     // Fetch all routes
-    const allRoutes = await routesModel.searchRoutes({});
+    const allRoutes = await routesModel.searchRoutes({ region, country });
 
     const routeModelHelper = new RouteModelHelper(
       stops,

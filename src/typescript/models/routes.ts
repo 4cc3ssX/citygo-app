@@ -26,6 +26,16 @@ export interface IRoute {
    * The bus route LineString coordinates of the bus line.
    */
   coordinates: ICoordinates[];
+
+  /**
+   * The name of the region.
+   */
+  region: string;
+
+  /**
+   * The name of the country.
+   */
+  country: string;
 }
 
 export interface ITransitRoute {
@@ -58,5 +68,5 @@ export interface ITransferPoint {
 
 export type IRouteSearchType = Pick<
   Partial<ReplaceValueByType<IRoute, ILocalizedString, string>>,
-  "name" | "route_id" | "stops"
+  "name" | "route_id" | "stops" | "region" | "country"
 >;

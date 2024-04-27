@@ -14,9 +14,14 @@ export interface ISuggestion extends ICoordinates {
    * The region of the suggested place
    */
   region: string;
+
+  /**
+   * The country of the suggested place
+   */
+  country: string;
 }
 
 export type ISuggestionSearchType = Pick<
   Partial<ReplaceValueByType<ISuggestion, ILocalizedString, string>>,
-  "name" | "region"
+  "name" | "region" | "country"
 >;

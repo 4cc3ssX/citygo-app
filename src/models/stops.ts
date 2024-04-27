@@ -9,7 +9,7 @@ export class Stops extends BaseModel<IStop> {
   readonly _logger: ILogger;
   readonly _db: Db;
   readonly _collection: Collection<IStop>;
-  readonly COLLECTION_NAME = "stops"  as const;
+  readonly COLLECTION_NAME = "stops";
   _defaultProjection: Document = { _id: 0 };
 
   constructor(_client: MongoClient, _logger: ILogger = logger) {
@@ -73,7 +73,14 @@ export class Stops extends BaseModel<IStop> {
 
     // loop through each property in the stop object
     Object.entries(search).forEach(([key, value]) => {
-      if (typeof value === "string" && value) {
+      if ((key === "region" || key === "country") && value) {
+        filters.$and?.push({
+          $or: [
+            { [key]: new RegExp(`${value}`, "i") },
+            { [key]: new RegExp(`${value}`, "i") },
+          ],
+        });
+      } else if (typeof value === "string" && value) {
         filters.$and?.push({
           $or: [
             { [`${key}.en`]: new RegExp(`${value}`, "i") },

@@ -60,6 +60,9 @@ export async function GET(request: NextRequest) {
   const lng = searchParams.get("lng") as string;
   const lat = searchParams.get("lat") as string;
   const count = Number(searchParams.get("count") || 10);
+  const region = searchParams.get("region") || process.env.DEFAULT_REGION;
+  const country = searchParams.get("country") || process.env.DEFAULT_COUNTRY;
+
   const distanceUnit =
     (searchParams.get("distance_unit") as DistanceUnits) ||
     DistanceUnits.KILOMETERS;
@@ -94,7 +97,7 @@ export async function GET(request: NextRequest) {
     const client = await clientPromise;
 
     const stopModel = new Stops(client);
-    const stops = await stopModel.searchStops({}, {});
+    const stops = await stopModel.searchStops({ region, country }, {});
 
     // current location
     const targetPoint = point([Number(lng), Number(lat)]);

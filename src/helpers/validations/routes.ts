@@ -29,6 +29,14 @@ export const findRoutesRequestSchema = z.object({
     road: z.string({ required_error: '"to.road" is required' }),
     township: z.string({ required_error: '"to.township" is required' }),
   }),
+  region: z
+    .string()
+    .regex(/[A-Za-z]+/, { message: "Invalid region" })
+    .optional(),
+  country: z
+    .string()
+    .regex(/[A-Za-z]+/, { message: "Invalid country" })
+    .optional(),
   count: z.number().min(5).max(10).optional(),
 });
 

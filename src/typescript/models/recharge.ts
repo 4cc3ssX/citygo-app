@@ -18,9 +18,19 @@ export interface IRecharge extends ICoordinates {
    * The township name of the recharge station
    */
   township: ILocalizedString;
+
+  /**
+   * The name of the region.
+   */
+  region: string;
+
+  /**
+   * The name of the country.
+   */
+  country: string;
 }
 
 export type IRechargeSearchType = Pick<
   Partial<ReplaceValueByType<IRecharge, ILocalizedString, string>>,
-  "name" | "road" | "township"
+  "name" | "road" | "township" | "region" | "country"
 >;

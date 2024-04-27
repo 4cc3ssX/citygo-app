@@ -8,7 +8,7 @@ export class Routes extends BaseModel<IRoute> {
   readonly _logger: ILogger;
   readonly _db: Db;
   readonly _collection: Collection<IRoute>;
-  readonly COLLECTION_NAME = "routes" as const;
+  readonly COLLECTION_NAME = "routes";
   _defaultProjection: Document = { _id: 0 };
 
   constructor(_client: MongoClient, _logger: ILogger = logger) {
@@ -27,7 +27,7 @@ export class Routes extends BaseModel<IRoute> {
    * @return {Promise<IRoute[]>} A promise that resolves to an array of routes.
    */
   async searchRoutes(search: IRouteSearchType): Promise<IRoute[]> {
-    const filters: Filter<IRoute> = this.createFilter(search)
+    const filters: Filter<IRoute> = this.createFilter(search);
 
     const routes = await this._collection
       .find(filters)
@@ -61,11 +61,18 @@ export class Routes extends BaseModel<IRoute> {
 
     // loop through each property in the route object
     Object.entries(search).forEach(([key, value]) => {
-      if (typeof value === "string" && value) {
+      if ((key === "region" || key === "country") && value) {
         filters.$and?.push({
           $or: [
             { [key]: new RegExp(`${value}`, "i") },
             { [key]: new RegExp(`${value}`, "i") },
+          ],
+        });
+      } else if (typeof value === "string" && value) {
+        filters.$and?.push({
+          $or: [
+            { [`${key}.en`]: new RegExp(`${value}`, "i") },
+            { [`${key}.mm`]: new RegExp(`${value}`, "i") },
           ],
         });
       }

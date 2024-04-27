@@ -46,6 +46,14 @@ export const revalidate = 60 * 60; // 1 hour
  *       - name: size
  *         in: query
  *         type: integer
+ *       - name: region
+ *         in: query
+ *         type: string
+ *         description: Region name
+ *       - name: country
+ *         in: query
+ *         type: string
+ *         description: Country code
  *       - name: format
  *         in: query
  *         type: string
@@ -89,6 +97,8 @@ export async function GET(request: NextRequest) {
   const name = searchParams.get("name") as string;
   const road = searchParams.get("road") as string;
   const township = searchParams.get("township") as string;
+  const region = searchParams.get("region") || process.env.DEFAULT_REGION;
+  const country = searchParams.get("country") || process.env.DEFAULT_COUNTRY;
 
   // response format
   const format =
@@ -99,7 +109,7 @@ export async function GET(request: NextRequest) {
 
     const rechargeModel = new Recharge(client);
     const rechargeStations = await rechargeModel.searchRechargeStations(
-      { name, road, township },
+      { name, road, township, region, country },
       { page, size }
     );
 
