@@ -4,6 +4,10 @@ CityGo is a Next.js application designed to provide effortless bus route and sto
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+## Demo
+
+Check out the demo video of this project [here](https://www.linkedin.com/posts/heinmyatthu_citygo-showcase-reactnative-activity-7190561830342164481-LSsA?utm_source=share&utm_medium=member_desktop).
+
 ## Getting Started
 
 First, run the development server:
